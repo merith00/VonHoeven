@@ -1,0 +1,23 @@
+extends layout
+
+block content
+    if messages.error
+        .notificationred
+            p= messages.error
+            script.
+                setTimeout(function() {
+                var notification = document.querySelector(".notificationred");
+                notification.parentNode.removeChild(notification);
+                }, 3000);
+    .mainContainer
+      .col-2
+        img(src='images/bodenprobenvh.gif')      
+      .col-2
+        .form-container
+            .form-btn
+                span(onclick='login()') Anmelden
+            .formLoginResgister
+                form#LoginForm(action='/account/login' method='post')
+                    input(type='email' name='email' placeholder='E-Mail' required)
+                    input(type='password' name='password' placeholder='Password' required)
+                    button.btn.bigBtn(type='submit') Anmelden

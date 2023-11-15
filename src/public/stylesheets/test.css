@@ -1,0 +1,37 @@
+input[type="checkbox"] { 
+    position: absolute; 
+    overflow: hidden; 
+    clip: rect(0 0 0 0); 
+    height: 1px; 
+    width: 1px; 
+    margin: -1px; 
+    padding: 0; 
+    border: 0; 
+}
+    
+
+
+input[type="checkbox"] + label { 
+        position: relative; 
+        font-size: 14px; 
+        cursor: pointer; 
+        display: inline-flex; 
+        align-items: center; 
+        height: 22px; 
+        color: rgb(97, 97, 97);
+}
+
+input[type="checkbox"] + label::before { 
+    content: " "; 
+    display: inline-block; 
+    vertical-align: middle; 
+    margin-right: 3px; 
+    width: 20px; 
+    height: 20px; 
+    background-color: rgb(67, 176, 42); 
+    border-width: 1px; 
+    border-style: solid; 
+    border-color: rgb(55, 148, 36); 
+    border-radius: 2px; 
+    box-shadow: none;
+}

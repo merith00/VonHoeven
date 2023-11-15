@@ -1,0 +1,451 @@
+extends layout
+
+block content
+
+
+  //- Überprüfen, ob Notification Inhalt hat und das Benachrichtigungsdiv anzeigen
+  if Notification
+      .notification-overlay
+          .notificationred
+              p= Notification
+      script.
+          setTimeout(function() {
+              var notificationOverlay = document.querySelector(".notification-overlay");
+              notificationOverlay.parentNode.removeChild(notificationOverlay);
+          }, 3000);
+
+  .container-fluid.flex-grow-1.d-flex.vertical-center.secondary-backgroundcolor
+    .container(id='tabContent' style='width: 100%; height: 85%')
+      ul.nav.nav-tabs.secondary-backgroundcolor.h5
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#lufa' data-tab-id='lufa') Lufa
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#claas' data-tab-id='claas') Claas
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#gsagri' data-tab-id='gsagri') GSAgri
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#lwk' data-tab-id='lwk') LWK-Niedersachsen
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#maehlmann' data-tab-id='maehlmann') Mählmann
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#sonstiges' data-tab-id='sonstiges') Sonstiges
+        li.nav-item.vertical-centerCheckbox.float-right(style='padding-left: 100px')
+          input(type='checkbox', id='nurZuZiehendeKunden', name='nurZuZiehendeKunden')
+          label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
+      .tab-content.text-center
+        #lufa.tab-pane.fade.show.active
+          #lufa-table.table-container.table-responsive(style="max-height: 60vh; overflow-y: auto;")
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in Daten.lufa
+                  tr.table-secondary
+                    td
+                      a.nav-linkTableA(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #claas.tab-pane.fade
+          #claas-table.table-container.secondary-backgroundcolor
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in Daten.claas
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #gsagri.tab-pane.fade
+          #gsagri-table.table-container
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in Daten.gsagri
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #lwk.tab-pane.fade
+          #lwk-table.table-container
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in Daten.lwkniedersachsen
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #maehlmann.tab-pane.fade
+          #maehlmann-table.table-container
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in Daten.maehlmann
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #sonstiges.tab-pane.fade
+          #sonstiges-table.table-container
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in Daten.sonstiges
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+
+      button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenterEinKunde'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Kunde hinzufügen  
+      button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenter'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Mehrere Kunden hinzufügen  
+  
+
+    .container(id='tabContentZuZiehen' style='width: 100%; height: 85%')
+      ul.nav.nav-tabs.secondary-backgroundcolor.h5
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#lufaZuZiehen' data-tab-id='lufa') Lufa
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#claasZuZiehen' data-tab-id='claas') Claas
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#gsagriZuZiehen' data-tab-id='gsagri') GSAgri
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#lwkZuZiehen' data-tab-id='lwk') LWK-Niedersachsen
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#maehlmannZuZiehen' data-tab-id='maehlmann') Mählmann
+        li.nav-item
+          a.nav-link.nav-linkTable(data-toggle='tab' href='#sonstiges' data-tab-id='sonstiges') Sonstiges
+        li.nav-item.vertical-centerCheckbox.float-right(style='padding-left: 100px')
+          input(type='checkbox', id='nurZuZiehendeKundenAnzeigen', name='nurZuZiehendeKundenAnzeigen')
+          label(for='nurZuZiehendeKunden' style='padding-left: 10px; padding-bottom: 0px') Ziehende Proben
+      .tab-content.text-center
+        #lufaZuZiehen.tab-pane.fade.show.active
+          #lufa-table.table-container.table-responsive(style="max-height: 60vh; overflow-y: auto;")
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in DatenZuZiehen.lufa
+                  tr.table-secondary
+                    td
+                      a.nav-linkTableA(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #claasZuZiehen.tab-pane.fade
+          #claas-table.table-container.secondary-backgroundcolor
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in DatenZuZiehen.claas
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #gsagriZuZiehen.tab-pane.fade
+          #gsagri-table.table-container
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in DatenZuZiehen.gsagri
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #lwkZuZiehen.tab-pane.fade
+          #lwk-table.table-container
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in DatenZuZiehen.lwkniedersachsen
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #maehlmannZuZiehen.tab-pane.fade
+          #maehlmann-table.table-container
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in DatenZuZiehen.maehlmann
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+        #sonstigesZuZiehen.tab-pane.fade
+          #sonstiges-table.table-container
+            table.table.table-bordered
+              thead
+                tr.primary-backgroundcolor
+                  th.secondary-color(scope="col") ID
+                  th.secondary-color(scope="col") Vorname
+                  th.secondary-color(scope="col") Nachname
+                  th.secondary-color(scope="col") Telefonnummer
+                  th.secondary-color(scope="col") E-Mail
+                  th.secondary-color(scope="col") Wohnort
+                  th.secondary-color(scope="col") Anzahl Flächen
+              tbody
+                each dat in DatenZuZiehen.sonstiges
+                  tr.table-secondary
+                    td
+                      a(href='/products/'+dat[0])= dat[0]
+                    td= dat[1]
+                    td= dat[2]
+                    td= dat[4]
+                    td= dat[3]
+                    td= dat[5]
+                    td= dat[6]
+    
+      button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenterEinKunde'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Kunde hinzufügen  
+      button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenter'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Mehrere Kunden hinzufügen  
+  
+  #exampleModalCenter.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
+    .modal-dialog.modal-dialog-centered(role='document')
+      .modal-content.neutral-backgroundcolor
+        // Modal-Header
+        .modal-header
+          h5#exampleModalLongTitle.modal-title.text-white Mehrere Kunden hinzufügen
+          button.close(type='button' data-dismiss='modal' aria-label='Close')
+            span(aria-hidden='true') &times;
+        // Modal-Body
+        .modal-body
+          // Formular innerhalb des Popups
+          form(ref='uploadMehrereKunden', id='uploadMehrereKunden', action='/products/uploadMehrereKunden', method='post', enctype='multipart/form-data')
+            .form-group
+              select#selectedOption.form-control(name='selectedOption')
+                option(value='1') Lufa
+                option(value='2') CLAAS
+                option(value='3') GSAgri 
+                option(value='4') LWK-Niedersachsen
+                option(value='5') M&auml;hlmann
+                option(value='6') Sonstiges
+            .input-group.mb-3
+              input.input-group-text(type='file', name='zipFiles', accept=".kml,.geojson,.shp,.zip" multiple)
+            // Hier können Sie den Inhalt des Modals hinzufügen
+            // Modal-Footer
+            .modal-footer
+              input.btn-primary.button.btn(type='submit', value='Hochladen!')
+
+  #exampleModalCenterEinKunde.modal.fade(tabindex='-1' role='dialog' aria-labelledby='exampleModalCenterTitle' aria-hidden='true')
+    .modal-dialog.modal-dialog-centered(role='document')
+      .modal-content.neutral-backgroundcolor
+        // Modal-Header
+        .modal-header
+          h5#exampleModalLongTitle.modal-title.text-white Kunden hinzuf&uuml;gen
+          button.close(type='button' data-dismiss='modal' aria-label='Close')
+            span(aria-hidden='true') &times;
+        // Modal-Body
+        .modal-body
+          form(ref='uploadFormRegister' action='/products/uploadFormRegister' method='post' enctype='multipart/form-data')
+            .row
+              .col-md-6
+                .form-group
+                  input.form-control(type='text' placeholder='Vorname' name='vorname')
+              .col-md-6
+                .form-group
+                  input.form-control(type='text' placeholder='Nachname' name='nachname')
+            .row
+              .col-md-6
+                .form-group
+                  input.form-control(type='email' name='email' placeholder='E-Mail')
+              .col-md-6
+                .form-group
+                  input.form-control(type='tel' name='telefonnummer' placeholder='Telefonnummer')
+            .row
+              .col-md-6
+                .form-group
+                  input.form-control(type='text' name='ort' placeholder='Ort') 
+              .col-md-6
+                .form-group
+                  input.form-control(type='number' name='plz' placeholder='Postleitzahl')
+            .row
+              .col-md-6
+                .form-group
+                  input.form-control(type='text' name='strasse' placeholder='Straße') 
+              .col-md-6
+                .form-group
+                  input.form-control(type='number' name='hausnummer' placeholder='Hausnummer') 
+            .row
+              .col-md-6
+                .form-group
+                  input.form-control(type='date' name='date' placeholder='Geburtsdatum') 
+              .col-md-6
+                .form-group
+                   input.form-control(type='password' placeholder='Passwort' name='password' ) 
+  
+            .form-group
+              select#selectedOption.form-control(name='selectedOption')
+                option(value='1') Lufa
+                option(value='2') CLAAS
+                option(value='3') GSAgri 
+                option(value='4') LWK-Niedersachsen
+                option(value='5') M&auml;hlmann
+                option(value='6') Sonstiges
+            .input-group.mb-3
+              input.input-group-text(type='file', name='sampleFile', accept=".kml,.geojson,.shp,.zip")               
+
+            // Hier können Sie den Inhalt des Modals hinzufügen
+            // Modal-Footer
+            .modal-footer
+              input.btn-primary.button.btn(type='submit', value='Hochladen!')
+  
+  script. 
+
+    document.getElementById('nurZuZiehendeKunden').addEventListener('change', function() {
+      var checked = this.checked;
+      document.getElementById('tabContent').style.display = checked ? 'none' : 'block';
+      document.getElementById('tabContentZuZiehen').style.display = checked ? 'block' : 'none';
+      document.getElementById('nurZuZiehendeKunden').checked=false;
+      document.getElementById('nurZuZiehendeKundenAnzeigen').checked=true;
+    });
+    
+    document.getElementById('nurZuZiehendeKundenAnzeigen').addEventListener('change', function() {
+      var checked = this.checked;
+      document.getElementById('tabContent').style.display = checked ? 'none' : 'block';
+      document.getElementById('tabContentZuZiehen').style.display = checked ? 'block' : 'none';
+      document.getElementById('nurZuZiehendeKundenAnzeigen').checked=false;
+    });
+
+    // Stellen Sie sicher, dass das div ausgeblendet ist, wenn die Seite geladen wird
+    document.getElementById('tabContentZuZiehen').style.display = 'none';
+
+
+    script(src='../routes/products.js')
+

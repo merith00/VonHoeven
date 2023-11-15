@@ -1,0 +1,61 @@
+extends layout
+
+mixin categorie(categorie)
+  button.dropdown-btn=categorie.category
+    if categorie.subcategories.length > 0
+      i.fa.fa-caret-down
+  .dropdown-container
+    each subcategory in categorie.subcategories
+      a(href='/products/' + subcategory.category.trim())=subcategory.category
+
+block content
+    //script.
+        function goWarenkorb(productID) {
+            fetch('/cart/add', {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    productid: productID
+                })
+            })
+                .then(response => response.status)
+                .then(status => handleResponse(status))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function handleResponse(status) {
+            if (status === 200) {
+                const div = document.createElement('div');
+                div.classList.add('notificationgreen');
+                const p = document.createElement('p');
+                p.textContent = 'Produkt erfolgreich hinzugefügt';
+                div.appendChild(p);
+                document.body.appendChild(div);
+                setTimeout(function () {
+                    div.remove();
+                }, 3000);
+            } else {
+                const div = document.createElement('div');
+                div.classList.add('notificationred');
+                const p = document.createElement('p');
+                p.textContent = 'Fehler!';
+                div.appendChild(p);
+                document.body.appendChild(div);
+            }
+        }
+    .sidenav
+        .h2 Kategorie
+        each categorie in allCategories
+            +categorie(categorie)
+    .productStyleDetailseite.productStyle
+        .h2= produktDetails
+        if produktDetails[2] !== 'dummy'
+            .card
+                img(src='images/' + produktDetails[7] + '.png')
+                h4= produktDetails[2]
+                // p= parseFloat(produktDetails[1].toFixed(2))
+                button(id=produktDetails[0], class='WarenkorbButton' onClick='goWarenkorb(this.id)') In den Warenkorb
+        script(src="/javascript/products.js")

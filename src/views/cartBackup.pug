@@ -1,0 +1,327 @@
+extends layout
+
+block content
+    .modal-container#successModal
+        .modal-content
+            h2 Vielen Dank f&uuml;r Ihre Bestellung! 
+            p
+              | Sie k&ouml;nnen jetzt entweder zur Startseite zur&uuml;ckkehren oder weitere Produkte ausw&auml;hlen.
+            br
+            .buttonContainer
+                a.cartButtonFertig(href='/') Zur&uuml;ck zur Startseite
+                a.cartButtonFertig(href='/products') Weitere Produkte ausw&auml;hlen
+            h2 Passend zu Ihrem Warenkorb
+            .new-products
+                .navButtons
+                    .btn.weiter(id='prev-btnPreis') &#8592
+                    .btn.weiter(id='next-btnPreis') &#8594
+                br
+                ul(id='product-listPreis')
+                    each produkt in products
+                        if produkt[2] !== 'dummy'
+                            .produktLI(id='produktLI')
+                                -const number = produkt[1]
+                                .imgDiv
+                                    img(src='/images/'+produkt[7]+'.png' id=produkt[0] onClick='showDetail(this.id)')
+                                h3= produkt[2]
+                                p= parseFloat(number.toFixed(2))+'€'        
+                                .btn(id=produkt[0], class='WarenkorbButton' onClick='goWarenkorb(this.id)') In den Warenkorb 
+    script.
+
+        function goWarenkorb(productID) {
+            fetch('/cart/add', {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    productid: productID
+                })
+            })
+                .then(response => response.status)
+                .then(status => handleResponse(status))
+                .catch(error => console.error('Error:', error));
+        }
+
+        function handleResponse(status) {
+            if (status === 200) {
+                const div = document.createElement('div');
+                div.classList.add('notificationgreen');
+                const p = document.createElement('p');
+                p.textContent = 'Produkt erfolgreich hinzugefügt';
+                div.appendChild(p);
+                document.body.appendChild(div);
+                location.reload()
+            } else {
+                const div = document.createElement('div');
+                div.classList.add('notificationred');
+                const p = document.createElement('p');
+                p.textContent = 'Fehler!';
+                div.appendChild(p);
+                document.body.appendChild(div);
+            }
+        }
+
+        const successModal = document.getElementById("successModal")
+        const closeModal = document.getElementById("closeModal")
+        const homeBtn = document.getElementById("homeBtn")
+        successModal.style.display = "none"
+        homeBtn.addEventListener("click", function() {
+        window.location.href = "/";
+        });
+
+        function showModal() {
+        successModal.style.display = "flex"
+        }
+
+        function initiateOrder(){
+        fetch('/cart',{
+            method: 'POST',
+            credentials: 'include',
+            headers:{
+            'Content-Type': 'application/json',
+            },
+        })
+            .then(response => {
+            if (response.status === 200) {
+                showModal();
+            }
+            })
+            .catch(error => {
+            console.error(error);
+            });
+        }
+
+        function deleteFromCart(productId) {
+        fetch('/cart', {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+            productid: productId
+            })
+        })
+            .then((response) => {
+                if(response.status === 200){
+                    location.reload()
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+    .cartStyle
+        .h2 Warenkorb
+        table
+            tr
+                th Produkt
+                th Gesamtpreis
+            each product in UserCart.products
+                tr
+                    td
+                        .cart-info
+                            li
+                                img(src='images/'+product[7].trim()+'.png')
+                            li= product[2]
+                        .cartButton
+                                button(id=product[0] onClick='deleteFromCart(this.id)') Löschen
+                    td= parseFloat(product[1].toFixed(2))+'€'
+            hr
+            tr
+                td 
+                td 
+                    table
+                        tr
+                            td Preis
+                            td= parseFloat(UserCart.gesamtsumme.toFixed(2)) +'€'
+                        tr
+                            td MwSt
+                            td= parseFloat(UserCart.mwst.toFixed(2)) +'€'
+                        tr
+                            td Gesamtpreis
+                            td= parseFloat(UserCart.gesamtsummeInklMwst.toFixed(2)) +'€'
+                        tr
+                            td
+                            td 
+                                .btn(class='bestellbutton' onClick='initiateOrder()') Bestellung abschließen  
+                    
+        .productVorgeschlagen
+            hr
+            if products.length > 0    
+                .h3 Passend zu Ihrer Auswahl
+            .new-products
+                .navButtons
+                    .btn.weiter(id='prev-btn') &#8592
+                    .btn.weiter(id='next-btn') &#8594
+                ul(id='product-list')
+                    each produkt in products
+                        if produkt[2] !== 'dummy'
+                            .produktLI(id='produktLI')
+                                -const number = produkt[1]
+                                .imgDiv
+                                    img(src='/images/'+produkt[7]+'.png' id=produkt[0] onClick='showDetail(this.id)')
+                                h3= produkt[2]
+                                p= parseFloat(number.toFixed(2))+'€'        
+                                .btn(id=produkt[0], class='WarenkorbButton' onClick='goWarenkorb(this.id)') In den Warenkorb 
+    script.
+        const nextBtn = document.getElementById("next-btn");
+        const prevBtn = document.getElementById("prev-btn");
+        const productList = document.getElementById("product-list");
+
+
+        prevBtn.style.display = "none";
+
+        const ulElement1 = document.getElementById('product-list');
+        const liElements1 = ulElement1.querySelectorAll('#produktLI');
+
+        if(liElements1.length <=5){
+            nextBtn.style.display = "none"
+            prevBtn.style.display = "none"
+        }
+
+        let offset = 0;
+        let displayedItems = 5;
+
+
+        nextBtn.addEventListener("click", () => {
+            prevBtn.style.display = "inline-block"
+            offset += 5;
+            displayedItems += 5;
+
+            for (let i = offset; i < displayedItems; i++) {
+            const li = productList.children[i];
+            if (li) {
+              li.style.display = "list-item";
+            } else {
+              nextBtn.style.display = "none";
+              break;
+            }
+          }
+
+          for (let i = offset - 5; i < offset; i++) {
+            const li = productList.children[i];
+            if (li) {
+              li.style.display = "none";
+            } else {
+              break;
+            }
+          }
+        });
+
+
+        prevBtn.addEventListener("click", () => {
+            nextBtn.style.display = "inline-block"
+
+            console.log(displayedItems)
+            offset -= 5;
+            displayedItems -= 5;
+
+        console.log('display' + displayedItems)
+
+        if(displayedItems <= 5){
+            prevBtn.style.display = "none"
+        }
+
+        for (let i = offset; i < displayedItems; i++) {
+        const li = productList.children[i];
+        if (li) {
+            li.style.display = "list-item";
+        } else {
+            break;
+        }
+        }
+
+        for (let i = displayedItems; i > offset; i++) {
+            const li = productList.children[i];
+            console.log('I ist ' + i)
+
+        if (li) {
+            li.style.display = "none";
+        } else {
+            break;
+        }
+        }
+        });
+
+
+
+         const nextBtnPreis = document.getElementById("next-btnPreis");
+        const prevBtnPreis = document.getElementById("prev-btnPreis");
+        const productListPreis = document.getElementById("product-listPreis");
+
+        prevBtnPreis.style.display = "none";
+
+
+        const ulElement2 = document.getElementById('product-listPreis');
+        const liElements2 = ulElement2.querySelectorAll('#produktLI');
+
+        if(liElements2.length <=5){
+            nextBtnPreis.style.display = "none"
+            prevBtnPreis.style.display = "none"
+        }
+
+
+        let offsetPreis = 0;
+        let displayedItemsPreis = 5;
+
+
+        nextBtnPreis.addEventListener("click", () => {
+            prevBtnPreis.style.display = "inline-block"
+            offsetPreis += 5;
+            displayedItemsPreis += 5;
+
+            for (let i = offsetPreis; i < displayedItemsPreis; i++) {
+            const li = productListPreis.children[i];
+            if (li) {
+              li.style.display = "list-item";
+            } else {
+              nextBtnPreis.style.display = "none";
+              break;
+            }
+          }
+
+          for (let i = offsetPreis - 5; i < offsetPreis; i++) {
+            const li = productListPreis.children[i];
+            if (li) {
+              li.style.display = "none";
+            } else {
+              break;
+            }
+          }
+        });
+
+
+        prevBtnPreis.addEventListener("click", () => {
+            nextBtnPreis.style.display = "inline-block"
+
+            offsetPreis -= 5;
+            displayedItemsPreis -= 5;
+
+
+        if(displayedItemsPreis <= 5){
+            prevBtnPreis.style.display = "none"
+        }
+
+        for (let i = offsetPreis; i < displayedItemsPreis; i++) {
+        const li = productListPreis.children[i];
+        if (li) {
+            li.style.display = "list-item";
+        } else {
+            break;
+        }
+        }
+
+        for (let i = displayedItemsPreis; i > offsetPreis; i++) {
+            const li = productListPreis.children[i];
+            console.log('I ist ' + i)
+
+        if (li) {
+            li.style.display = "none";
+        } else {
+            break;
+        }
+        }
+        });
+

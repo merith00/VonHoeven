@@ -1,0 +1,127 @@
+extends layout
+
+block content
+ .container-fluid.flex-grow-1.d-flex.vertical-center.secondary-backgroundcolor
+  h1 Kontoinformationen
+  form
+    h3 Pers&ouml;nliche Informationen
+    .form-row.h5
+      .form-group.col-md-2
+        label(for='anrede') Anrede
+        input.form-control(type='text' value=MitarbeiterDaten[0][4] readonly='')
+      .form-group.col-md-2
+        label(for='id') ID
+        input.form-control(type='text' value=MitarbeiterDaten[0][0] readonly='')
+      .form-group.col-md-2
+        label(for='id') Vorname
+        input.form-control(type='text' value=MitarbeiterDaten[0][1] readonly='')
+      .form-group.col-md-2
+        label(for='id') Nachname
+        input.form-control(type='text' value=MitarbeiterDaten[0][2] readonly='')
+      .form-group.col-md-2
+        label(for='id') Telefon
+        input.form-control(type='text' value=MitarbeiterDaten[0][3] readonly='')
+      .form-group.col-md-2
+        label(for='id') Email
+        input.form-control(type='text' value=MitarbeiterDaten[0][10] readonly='')
+
+    h3 Adresse
+    .form-row.h5
+      .form-group.col-md-2
+        label(for='anrede') Ort
+        input.form-control(type='text' value=MitarbeiterDaten[0][8] readonly='')
+      .form-group.col-md-2
+        label(for='id') Postleitzahl
+        input.form-control(type='text' value=MitarbeiterDaten[0][6] readonly='')
+      .form-group.col-md-2
+        label(for='id') Stra&szlig;e
+        input.form-control(type='text' value=MitarbeiterDaten[0][5] readonly='')
+      .form-group.col-md-2
+        label(for='id') Hausnummer
+        input.form-control(type='text' value=MitarbeiterDaten[0][7] readonly='')
+      .form-group.col-md-2
+    h3 Passwort &auml;ndern
+    .form-row.h5
+      .form-group.col-md-6
+        label(for='neuesPasswort') Neues Passwort
+        input#neuesPasswort.form-control(type='password' placeholder='Neues Passwort')
+      .form-group.col-md-6
+        label(for='passwortWiederholen') Passwort wiederholen
+        input#passwortWiederholen.form-control(type='password' placeholder='Passwort wiederholen')
+    button.btn.btn-primary(type='submit' class='btn btn-primary button float-right' onClick='(passwortAendern())') Passwort &auml;ndern
+  br
+  form(action='/account/logout?_method=DELETE' method="POST")
+    button.btn.btn-danger(type='submit' class='btn btn-primary button') Abmelden
+   
+ script.
+      var passwordNewInput = document.querySelector("input[name='passwordNew']");
+      var passwordWiederholtInput = document.querySelector("input[name='passwordWiederholt']");
+      const submitButton = document.querySelector("#submitButton");
+
+      function toggleSubmitButtonVisibility() {
+         if (passwordNewInput.value.trim() !== "" || passwordWiederholtInput.value.trim() !== "") {
+            submitButton.style.display = "block";
+         } else {
+            submitButton.style.display = "none";
+         }
+      }
+
+      passwordNewInput.addEventListener("input", toggleSubmitButtonVisibility);
+      passwordWiederholtInput.addEventListener("input", toggleSubmitButtonVisibility);
+
+
+      function passwortAendern(){
+         var passwordNewInputValue = document.querySelector("input[name='passwordNew']");
+         var passwordWiederholtInputValue = document.querySelector("input[name='passwordWiederholt']");
+
+         passwordNewInputValue = passwordNewInputValue.value;
+         passwordWiederholtInputValue = passwordWiederholtInputValue.value
+
+         const requestData = {
+                passwordNewInput: passwordNewInputValue,
+                passwordWiederholtInput: passwordWiederholtInputValue
+            };
+
+            fetch('/account/add', {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+                .then(response => response.status)
+                .then(status => handleResponse(status))
+                .catch(error => console.error('Error:', error));
+      }
+
+      function handleResponse(status) {
+         if (status === 200) {
+            const div = document.createElement('div');
+            div.classList.add('notificationgreen');
+            const p = document.createElement('p');
+            p.textContent = 'Produkt erfolgreich hinzugefügt';
+            div.appendChild(p);
+            document.body.appendChild(div);
+            location.reload()
+         } else if (status === 300) {
+            const div = document.createElement('div');
+            div.classList.add('notificationgreen');
+            const p = document.createElement('p');
+            p.textContent = 'Produkt erfolgreich hinzugefügt';
+            div.appendChild(p);
+            document.body.appendChild(div);
+            location.reload()
+            window.location.href = '/products'; // Ändere die URL entsprechend deiner Seite 
+         } else {
+            const div = document.createElement('div');
+            div.classList.add('notificationred');
+            const p = document.createElement('p');
+            p.textContent = 'Fehler!';
+            div.appendChild(p);
+            document.body.appendChild(div);
+         }
+      }
+
+   
+                 
