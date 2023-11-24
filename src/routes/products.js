@@ -19,6 +19,9 @@ const beiMehrerenKundenDieFleachenHinzufügen = require('../database/oracle').be
 const getKundendatenDieZuZiehenSind = require('../database/oracle').getKundendatenDieZuZiehenSind
 const getkundenDatenVomAusgewaehltenUser = require('../database/oracle').getkundenDatenVomAusgewaehltenUser
 const getUpdateDatenVomKunden = require('../database/oracle').getUpdateDatenVomKunden
+const kundenzumloeschen = require('../database/oracle').getKundenzumloeschen
+
+
 
 
 
@@ -148,14 +151,10 @@ function readDataFromKMLFile(file, res,req, selectedOption, register) {
 router.get('/', async function(req, res, next) {
     if(req.isAuthenticated()){
         const userID = req.user.id
-        var kundendaten = await KundendatenGET(userID)
-        var kundendatenDieZuZiehenSind = await getKundendatenDieZuZiehenSind(userID)
-        const cartFromUser = await getBestllungenFromUser(userID)
-        const FleachenFromUserBestellt = await getFleachenFromUserBestellt(userID)
-        const Clob = await getClobHier(userID)
+        var kundendaten = await KundendatenGET()
+        var kundendatenDieZuZiehenSind = await getKundendatenDieZuZiehenSind()
         artikelNrFromCart = []
         const kundendatenUebergabe = kundendaten
-
         res.render('products', { title: 'Express', Daten: kundendatenUebergabe, Notification: getNoticitcation, DatenZuZiehen: kundendatenDieZuZiehenSind, login:true})
         getNoticitcation = '';
       }
@@ -205,22 +204,24 @@ router.get('/:category', async (req,res)=>{
         const kundenDatenVomAusgewaehltenUser = await getkundenDatenVomAusgewaehltenUser(userID)
 
 
+
         var hatkeinenWarenkorb = false;
+
+
 
         if(cartFromUser.products.length == 0){
           hatkeinenWarenkorb = true;
         }
 
 
+
         setKundenID(userID)
 
         const FleachenFromUserBestellt = await getFleachenFromUserBestellt(userID)
-
-        const Clob = await getClobHier(userID)
         artikelNrFromCart = []
 
 
-        res.render('productsByCategory',{title: 'Webshop', dieUserID: userID, kundenDatenVomAusgewaehltenUser: kundenDatenVomAusgewaehltenUser, hatkeinenWarenkorb: hatkeinenWarenkorb, UserCart: cartFromUser, FleachenBestellt: FleachenFromUserBestellt.rows,  Fleachen: fleachenFromUser.rows, login: true}) // mit CategoryRequested kann man evtl. die Kategorie in der Auswahlleiste farbig hinterlegen
+        res.render('productsByCategory',{title: 'Webshop', dieUserID: userID, kundenDatenVomAusgewaehltenUser: kundenDatenVomAusgewaehltenUser, hatkeinenWarenkorb: hatkeinenWarenkorb, UserCart: cartFromUser, FleachenBestellt: FleachenFromUserBestellt,  Fleachen: fleachenFromUser, login: true}) // mit CategoryRequested kann man evtl. die Kategorie in der Auswahlleiste farbig hinterlegen
     }else{
         res.redirect('/')
     }
@@ -236,31 +237,30 @@ router.post('/', async (req,res)=>{
 })
 
 async function InfoToKMLFile(infoProductIDs, res) {
-  var testinfo = '';
   const geojson = {
     type: 'FeatureCollection',
     features: infoProductIDs.map(info => {
       const produktinfo = info.produktinfo[0];
       const flaecheninfo = info.flaecheninfo;
-      testinfo = flaecheninfo
-
+      
       return {
         type: 'Feature',
         properties: {
-          PROBEN_NR: produktinfo[0],
-          KUNDEN_NR: produktinfo[1],
-          BEPROBENAB: produktinfo[2],
-          NUTZUNG: produktinfo[3],
-          SCHLAGBEZ: produktinfo[4],
+          PROBEN_NR: produktinfo.ARTIKELNR,
+          KUNDEN_NR: produktinfo.KUNDENNUMMER,
+          BEPROBENAB: produktinfo.STARTDATUM,
+          NUTZUNG: produktinfo.FLEACHENART,
+          SCHLAGBEZ: produktinfo.FLAECHENNAME,
         },
         geometry: {
           type: 'Point',
-          coordinates: [flaecheninfo] // Stellen Sie sicher, dass die Koordinaten in Längengrad, Breitengrad sind
+          coordinates: flaecheninfo // Direkte Verwendung der Koordinaten, ohne ein zusätzliches Array
         }
-      }
+      };
     })
   };
-
+  
+    
   const kmlOptions = {
     documentName: 'SELECT',
     documentDescription: 'My Data',
@@ -284,47 +284,52 @@ async function InfoToKMLFile(infoProductIDs, res) {
     }
   };
 
-
-
   var xmlString = `<?xml version="1.0" encoding="utf-8" ?>
-    <kml xmlns="http://www.opengis.net/kml/2.2">
+  <kml xmlns="http://www.opengis.net/kml/2.2">
     <Document id="root_doc">
-    <Schema name="SELECT" id="SELECT">
-        <SimpleField name="PROBEN_NR" type="float"></SimpleField>
-        <SimpleField name="KUNDEN_NR" type="float"></SimpleField>
-        <SimpleField name="BEPROBENAB" type="string"></SimpleField>
-        <SimpleField name="NUTZUNG" type="string"></SimpleField>
-        <SimpleField name="SCHLAGBEZ" type="string"></SimpleField>
-    </Schema>
-    <Folder><name>SELECT</name> `;
+      <Schema name="SELECT" id="SELECT">
+          <SimpleField name="PROBEN_NR" type="float"></SimpleField>
+          <SimpleField name="KUNDEN_NR" type="float"></SimpleField>
+          <SimpleField name="BEPROBENAB" type="string"></SimpleField>
+          <SimpleField name="NUTZUNG" type="string"></SimpleField>
+          <SimpleField name="SCHLAGBEZ" type="string"></SimpleField>
+      </Schema>
+      <Folder><name>SELECT</name>`;
 
-
-    for (const info of infoProductIDs) {
-      const produktinfo = info.produktinfo[0];
-      const flaecheninfo = info.flaecheninfo;
-      xmlString = xmlString + `
+  for (const info of infoProductIDs) {
+    const produktinfo = info.produktinfo[0];
+    const flaecheninfo = info.flaecheninfo;
+    xmlString = xmlString + `
         <Placemark>
           <Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
           <ExtendedData><SchemaData schemaUrl="#SELECT">
-              <SimpleData name="PROBEN_NR">`+produktinfo[0]+`</SimpleData>
-              <SimpleData name="KUNDEN_NR">`+produktinfo[1]+`</SimpleData>
-              <SimpleData name="BEPROBENAB">`+produktinfo[2]+`</SimpleData>
-              <SimpleData name="NUTZUNG">`+produktinfo[3]+`</SimpleData>
-              <SimpleData name="SCHLAGBZ">`+produktinfo[4]+`</SimpleData>
+              <SimpleData name="PROBEN_NR">`+produktinfo.ARTIKELNR+`</SimpleData>
+              <SimpleData name="KUNDEN_NR">`+produktinfo.KUNDENNUMMER+`</SimpleData>
+              <SimpleData name="BEPROBENAB">`+produktinfo.STARTDATUM+`</SimpleData>
+              <SimpleData name="NUTZUNG">`+produktinfo.FLEACHENART+`</SimpleData>
+              <SimpleData name="SCHLAGBZ">`+produktinfo.FLAECHENNAME+`</SimpleData>
           </SchemaData></ExtendedData>
-          <Polygon><outerBoundaryIs><LinearRing><coordinates>`+flaecheninfo+`</coordinates></LinearRing></outerBoundaryIs></Polygon>
+          <Polygon>
+            <outerBoundaryIs>
+              <LinearRing>
+                <coordinates>
+                  `+flaecheninfo+`
+                </coordinates>
+              </LinearRing>
+            </outerBoundaryIs>
+          </Polygon>
         </Placemark> `
-    }
+  }
 
-    xmlString = xmlString + `
-    </Folder>
-    </Document></kml>`;
-
-
-
+  xmlString = xmlString + `
+      </Folder>
+    </Document>
+  </kml>`;
+  
   const kml = tokml(geojson, kmlOptions);
+  
+
   fs.writeFileSync('output.kml', kml);
-  const kmlBlob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
 
   res.setHeader('Content-Disposition', 'attachment; filename=output.kml');
   res.setHeader('Content-Type', 'application/vnd.google-earth.kml+xml');
@@ -368,12 +373,13 @@ router.put('/setUpdateDatenVomKunden', async (req,res) => {
       console.error('Fehler:', error);
       res.status(500).send('Fehler beim Hinzufügen der neuen Informatioenen.');
     }
-  }
+  } 
 });
 
 router.put('/fleachenAufBearbeitetStellen', async (req,res) => {
   if(req.isAuthenticated()){
     try {
+      console.log(req.body.productIDs)
       await fleacheAufBearbeitetSetzen(req.body.productIDs)
       res.sendStatus(100)
     } catch (error) {
@@ -425,6 +431,20 @@ router.put('/gerateAllInformations', async (req,res) => {
   }
 });
 
+router.put('/deleteCustomer', async (req,res) => {
+  if(req.isAuthenticated()){
+    try{
+      const { kundeloeschen} = req.body;
+      await kundenzumloeschen(kundeloeschen)
+      res.sendStatus(200)
+      //handleResponse(400,res)
+      console.log(kundeloeschen)
+    }catch(error){
+      res.sendStatus(404)
+    }
+  }
+});
+
 function readDataFromGeojsonFile(file,res,req,selectedOption,register) {
   onHightLight(file,res,req,selectedOption,register);
 }
@@ -457,6 +477,35 @@ function convertTOWGS(geojson){
   return geojson;
 }
 
+function convertTOWGSTransverseMercator(geojson) {
+  const etrsUtmZone32 = '+proj=utm +zone=32 +ellps=GRS80 +datum=ETRS89 +units=m +no_defs';
+  const wgs84 = '+proj=longlat +datum=WGS84 +no_defs';
+
+  geojson.features.forEach((feature, index) => {
+    if (feature.geometry && feature.geometry.coordinates && feature.geometry.coordinates[0]) {
+
+      feature.geometry.coordinates.forEach((ring, ringIndex) => {
+        ring.forEach((coordinate, coordIndex) => {
+          // Überprüfen, ob die Koordinaten gültige Zahlen sind
+          if (!isNaN(coordinate[0]) && !isNaN(coordinate[1])) {
+            const transformedCoordinates = proj4(etrsUtmZone32, wgs84, coordinate);
+            feature.geometry.coordinates[ringIndex][coordIndex] = transformedCoordinates;
+          } else {
+            console.warn(`Skipping invalid coordinates at Ring ${ringIndex + 1}, Coordinate ${coordIndex + 1}`);
+          }
+        });
+      });
+    } else {
+      console.error('Fehler: feature.geometry oder feature.geometry.coordinates sind nicht definiert ' + geojson.features[0].properties.KUNDEN_NR);
+      return geojson;
+    }
+  });
+
+  return geojson;
+}
+
+
+
 async function readDataFromZipFile(file, res, req, selectedOption, register, anzahldateien) {
   try {
     const zip = new JSZip();
@@ -485,6 +534,9 @@ async function readDataFromZipFile(file, res, req, selectedOption, register, anz
 
     if(isGaus(prjBuffer)){
       geojson = convertTOWGS(geojson);
+    } else if(isTransverseMercator(prjBuffer)){
+      geojson = convertTOWGSTransverseMercator(geojson);
+      console.log('ES handelt sich um transmecador')
     }
 
     onHightLight(geojson, res, req, selectedOption, register, anzahldateien)
@@ -510,6 +562,14 @@ function isGaus(prjContent){
   }
 }
 
+function isTransverseMercator(prjContent){
+  if (prjContent.includes('PROJECTION["Transverse_Mercator"]')) {
+    return true;
+  } else {
+      return false;
+  }
+}
+
 
 
 async function onHightLight(data, res,req,selectedOption,register , anzahldateien) {
@@ -525,8 +585,6 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
 
 
   if(anzahldateien>1){
-
-
     var uebergebeneDaten = []
 
     data.features.forEach(feature => {
@@ -597,7 +655,6 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
     if(getBearbeiteteDateiEinenHoeher() === anzahldateien){
       setBearbeiteteDateiWiederAufEins()
       var statusCode = await beiMehrerenKundenDieFleachenHinzufügen(res, mehrereKundenAlleFlaechenInformationen)
-      console.log("Der Code " + statusCode)
       mehrereKundenAlleFlaechenInformationen = []
       handleResponse(statusCode, res, data.features[0].properties.KUNDEN_NR)
     } else {
@@ -611,11 +668,11 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
 
     if(register){
       try {
+
         const hashedPassword = await bcrypt.hash(password, 10)
         const result  = await registerUserWithFleachen(data.features[0].properties.KUNDEN_NR, req.body.email, req.body.telefonnummer, hashedPassword,req.body.vorname, req.body.nachname,req.body.date,req.body.ort, req.body.plz, req.body.strasse, req.body.hausnummer, selectedOption)
         setKundenID(result.kundennummer)
         
-        console.log(result.statusCode + ' ist das result')
         if(result.statusCode===123){
           statuscodeEinKunde = 123;
         }
@@ -716,7 +773,6 @@ async function onHightLight(data, res,req,selectedOption,register , anzahldateie
         handleResponse(100, res, getKundenID())
     
       } else {
-        console.log('isnicht: ' + data.features[0].properties.KUNDEN_NR + ' ' + getKundenID() )
         handleResponse(400, res,0)
       }
     }
@@ -732,7 +788,6 @@ async function createTheBestellung(userid){
     console.error('Fehler:', error);
   }
 }
-
 
 
 async function addToBestellung(requestData){
@@ -758,10 +813,7 @@ async function addToBestellung(requestData){
 
 }
 
-
-
 function handleResponse(status, res, userID) {
-    console.log("Der STATUS IST: " + status)
   try{
     if (status === 200) {
         const div = document.createElement('div');
@@ -783,7 +835,6 @@ function handleResponse(status, res, userID) {
     } else if(status === 400){
       res.redirect('/products');
     } else if(status === 123){
-      console.log('HIIIER')
       getNoticitcation = 'Es wurde eine falsche Datei eingefügt'
       res.redirect('/products');
     } else if(status === 100){

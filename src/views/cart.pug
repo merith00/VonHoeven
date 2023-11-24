@@ -134,25 +134,18 @@ block content
     script.
 
         const today = new Date();
-
-        // Formatieren Sie das Datum im yyyy-mm-dd-Format
         const todayFormatted = today.toISOString().split('T')[0];
-
-        // Setzen Sie das Datum als Standardwert für das Eingabedatum
         document.getElementById('datepicker').value = todayFormatted;
 
 
         function fleachwurdenBearbeitet(dateValue,userID) {
             const selectedProducts = [];
 
-            for (let index = 1; index < includedFlaechen.length; index++) {
+            for (let index = 0; index < includedFlaechen.length; index++) {
                 var EminValue = 'n';
                 var MangatValue = 'n';
                 var StickstoffValue = 'n';
                 var CheckboxCnValue = 'n';
-
-
-
 
                 if (includedFlaechen[index].nmin === 1) {
                  MangatValue = 'j';
@@ -187,11 +180,7 @@ block content
                     selectedProducts.push(productInfo)
             }
 
-
-
             document.getElementById('loadingIndicator').style.display = 'block';
-
-
             
             fetch('/products/fleachenAufBearbeitetStellen', {
                 method: 'PUT',
@@ -214,8 +203,6 @@ block content
             .finally(() => {
                 window.location.reload();
             });
-
-
         }
 
 
@@ -254,8 +241,8 @@ block content
             var maxLng = Number.NEGATIVE_INFINITY;
 
             for (var i = 0; i < coordinatesArray.length; i++) {
-                var latitude = coordinatesArray[i][1];
-                var longitude = coordinatesArray[i][2];
+                var latitude = parseFloat(coordinatesArray[i].FKOORDINATENIDLAT);
+                var longitude = parseFloat(coordinatesArray[i].FKOORDINATENIDLNG);
 
                 minLat = Math.min(minLat, latitude);
                 maxLat = Math.max(maxLat, latitude);
@@ -306,84 +293,77 @@ block content
             return (day < 10 ? '0' : '') + day + '.' + (month < 10 ? '0' : '') + month + '.' + year;
         }
 
-
-
-        function updateFunction(){
-
+        function updateFunction() {
             map.eachLayer(function (layer) {
                 if (layer instanceof L.Polygon) {
                     map.removeLayer(layer);
                 }
             });
 
+            var coordinates = [];
+            var flaechenID = 0;
             var infos;
+            var colorArt = '#b9f700';
 
-            var colorArt = '#b9f700'
-
-
-            if(filterNminValue.checked){
+            if (filterNminValue.checked) {
                 coordinatesArray.forEach(function (fleachenStueck) {
-                    if (flaechenID === fleachenStueck[0]) {
-                        coordinates.push([fleachenStueck[1], fleachenStueck[2]]);
+                    if (flaechenID === fleachenStueck.ARTIKELNR) {
+                        coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
                         infos = {
-                            probenNr: fleachenStueck[0],
-                            kundenNr: fleachenStueck[11],
-                            beprobenAb: fleachenStueck[9],
-                            nutzung: fleachenStueck[10],
-                            schlagBz: fleachenStueck[8],
-                            nminGzogen: fleachenStueck[4],
-                            sminGzogen: fleachenStueck[5],
-                            humusGzogen: fleachenStueck[6],
-                            cnGzogen: fleachenStueck[7],
-                        } 
+                            probenNr: fleachenStueck.ARTIKELNR,
+                            kundenNr: fleachenStueck.KUNDENNUMMER,
+                            beprobenAb: fleachenStueck.STARTDATUM,
+                            nutzung: fleachenStueck.FLEACHENART,
+                            schlagBz: fleachenStueck.FLAECHENNAME,
+                            nminGzogen: fleachenStueck.enthält_nmin,
+                            sminGzogen: fleachenStueck.enthält_smin,
+                            humusGzogen: fleachenStueck.enthält_humus,
+                            cnGzogen: fleachenStueck.enthält_cn,
+                        };
 
-                        if(fleachenStueck[12] === 1){
-                            colorArt = 'blue'
+                        if (fleachenStueck.PROBENSTATUS === 1) {
+                            colorArt = 'blue';
                         } else {
-                            colorArt = '#b9f700'
+                            colorArt = '#b9f700';
                         }
                     } else {
                         if (coordinates.length > 2) {
-
-
-
-                            var polygon = L.polygon(coordinates, { 
-                                color: colorArt, 
-                                fillColor: colorArt, 
-                                fillOpacity: 0.4 ,     
-                                info: infos }).addTo(map);
+                            var polygon = L.polygon(coordinates, {
+                                color: colorArt,
+                                fillColor: colorArt,
+                                fillOpacity: 0.4,
+                                info: infos,
+                            }).addTo(map);
 
                             var area = L.GeometryUtil.geodesicArea(polygon.getLatLngs()[0]) / 10000;
-                            area = area.toFixed(2)
-
+                            area = area.toFixed(2);
 
                             polygon.on('click', function () {
                                 var info = this.options.info;
+                                var datum = formatDate(info.beprobenAb);
 
-                                var datum = formatDate(info.beprobenAb)
-
-                                if(info.nminGzogen === 1){
-                                    info.nminGzogen = 'Nmin '
+                                if (info.nminGzogen === 1) {
+                                    info.nminGzogen = 'Nmin ';
                                 } else {
-                                    info.nminGzogen = ''
+                                    info.nminGzogen = '';
                                 }
 
-                                if(info.sminGzogen === 1){
-                                    info.sminGzogen = 'Smin '
+                                if (info.sminGzogen === 1) {
+                                    info.sminGzogen = 'Smin ';
                                 } else {
-                                    info.sminGzogen = ''
+                                    info.sminGzogen = '';
                                 }
 
-                                if(info.humusGzogen === 1){
-                                    info.humusGzogen = 'Humus '
+                                if (info.humusGzogen === 1) {
+                                    info.humusGzogen = 'Humus ';
                                 } else {
-                                    info.humusGzogen = ''
+                                    info.humusGzogen = '';
                                 }
 
-                                if(info.cnGzogen === 1){
-                                    info.cnGzogen = 'C/N '
+                                if (info.cnGzogen === 1) {
+                                    info.cnGzogen = 'C/N ';
                                 } else {
-                                    info.cnGzogen = ''
+                                    info.cnGzogen = '';
                                 }
 
                                 document.getElementById('probenNr').textContent = info.probenNr;
@@ -391,24 +371,78 @@ block content
                                 document.getElementById('beprobenAb').textContent = datum;
                                 document.getElementById('nutzung').textContent = info.nutzung;
                                 document.getElementById('schlagBz').textContent = info.schlagBz;
-                                document.getElementById('nminGzogen').textContent = info.nminGzogen ;
-                                document.getElementById('sminGzogen').textContent = info.sminGzogen ;
-                                document.getElementById('humusGzogen').textContent = info.humusGzogen ;
+                                document.getElementById('nminGzogen').textContent = info.nminGzogen;
+                                document.getElementById('sminGzogen').textContent = info.sminGzogen;
+                                document.getElementById('humusGzogen').textContent = info.humusGzogen;
                                 document.getElementById('cnGzogen').textContent = info.cnGzogen;
                                 document.getElementById('fleachenGroesse').textContent = area;
                                 $('#exampleModalCenter').modal('show');
                             });
                         }
-
-                        flaechenID = fleachenStueck[0];
-                        coordinates = [[fleachenStueck[1], fleachenStueck[2]]];
+                        flaechenID = fleachenStueck.ARTIKELNR;
+                        coordinates = [
+                            [fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG],
+                        ];
                         infos = '';
                     }
                 });
 
+                // Fehlende Teile am Ende der Funktion
+                if (coordinates.length > 2) {
+                    var polygon = L.polygon(coordinates, {
+                        color: colorArt,
+                        fillColor: colorArt,
+                        fillOpacity: 0.4,
+                        info: infos,
+                    }).addTo(map);
+
+                    polygon.on('click', function () {
+                        var info = this.options.info;
+                        var datum = formatDate(info.beprobenAb);
+
+                        if (info.nminGzogen === 1) {
+                            info.nminGzogen = 'Nmin ';
+                        } else {
+                            info.nminGzogen = '';
+                        }
+
+                        if (info.sminGzogen === 1) {
+                            info.sminGzogen = 'Smin ';
+                        } else {
+                            info.sminGzogen = '';
+                        }
+
+                        if (info.humusGzogen === 1) {
+                            info.humusGzogen = 'Humus ';
+                        } else {
+                            info.humusGzogen = '';
+                        }
+
+                        if (info.cnGzogen === 1) {
+                            info.cnGzogen = 'C/N ';
+                        } else {
+                            info.cnGzogen = '';
+                        }
+
+                        document.getElementById('probenNr').textContent = info.probenNr;
+                        document.getElementById('kundenNr').textContent = info.kundenNr;
+                        document.getElementById('beprobenAb').textContent = datum;
+                        document.getElementById('nutzung').textContent = info.nutzung;
+                        document.getElementById('schlagBz').textContent = info.schlagBz;
+                        document.getElementById('nminGzogen').textContent = info.nminGzogen;
+                        document.getElementById('sminGzogen').textContent = info.sminGzogen;
+                        document.getElementById('humusGzogen').textContent = info.humusGzogen;
+                        document.getElementById('cnGzogen').textContent = info.cnGzogen;
+                        document.getElementById('fleachenGroesse').textContent = area;
+                        $('#exampleModalCenter').modal('show');
+                    });
+                }
+
                 coordinates = [];
                 flaechenID = 0;
-            } /*else if(!filterNminValue.checked && filterminValue.checked &&  filterHumusValue.checked &&  filterCNValue.checked ){
+            }
+        
+            /*else if(!filterNminValue.checked && filterminValue.checked &&  filterHumusValue.checked &&  filterCNValue.checked ){
                 coordinatesArray.forEach(function (fleachenStueck) {
                     if(fleachenStueck[5]==1 || fleachenStueck[6]==1 || fleachenStueck[7]==1){
                         if (flaechenID === fleachenStueck[0]) {
@@ -537,12 +571,7 @@ block content
             }*/
 
             coordinates = [];
-
         }
-
-
-
-
 
         var drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
@@ -573,10 +602,12 @@ block content
 
         var includedFlaechen = [];
 
-
         map.addControl(drawControl);
 
-        // Event-Handler für das Zeichnen der Fläche
+
+        var includedFlaechen = [];
+
+
         map.on('draw:created', function (e) {
             var layer = e.layer;
             drawnItems.addLayer(layer);
@@ -587,12 +618,12 @@ block content
             coordinatesArray.forEach(function (fleachenStueck) {
                 
 
-                if (flaechenID === fleachenStueck[0]) {
-                        coordinates.push([fleachenStueck[1], fleachenStueck[2]]);
-                        nmin = fleachenStueck[4]
-                        smin = fleachenStueck[5]
-                        humus = fleachenStueck[6]
-                        cn = fleachenStueck[7]
+                if (flaechenID === fleachenStueck.ARTIKELNR) {
+                        coordinates.push([fleachenStueck.FKOORDINATENIDLAT, fleachenStueck.FKOORDINATENIDLNG]);
+                        nmin = fleachenStueck.enthält_nmin
+                        smin = fleachenStueck.enthält_smin
+                        humus = fleachenStueck.enthält_humus
+                        cn = fleachenStueck.enthält_cn
                 } else {
                     if (coordinates.length > 2) {
                         // Polygon erstellen und der Karte hinzufügen
@@ -611,7 +642,7 @@ block content
                             includedFlaechen.push(fleachenErstellt);
                         }   
                     }
-                    flaechenID = fleachenStueck[0];
+                    flaechenID = fleachenStueck.ARTIKELNR;
                     infos = '';
                     coordinates = [];
 
@@ -620,11 +651,7 @@ block content
 
 
             $('#ModalCenter').modal('show');
-
         });
-
-
-
 
         function kmlerstellen() {;
             var produktid = document.getElementById('probenNr').textContent;
@@ -657,7 +684,6 @@ block content
             })
             .catch(error => console.error('Error:', error));
         }
-
 
         function kmlerstellenMehrere() {;
             var produktid = []
@@ -694,7 +720,3 @@ block content
             })
             .catch(error => console.error('Error:', error));
         }
-
-
-
-        //script(src="/javascript/cart.js")

@@ -44,17 +44,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in Daten.lufa
                   tr.table-secondary
                     td
-                      a.nav-linkTableA(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a.nav-linkTableA(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #claas.tab-pane.fade
           #claas-table.table-container.secondary-backgroundcolor
             table.table.table-bordered
@@ -67,17 +70,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in Daten.claas
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #gsagri.tab-pane.fade
           #gsagri-table.table-container
             table.table.table-bordered
@@ -90,17 +96,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in Daten.gsagri
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #lwk.tab-pane.fade
           #lwk-table.table-container
             table.table.table-bordered
@@ -113,17 +122,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in Daten.lwkniedersachsen
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #maehlmann.tab-pane.fade
           #maehlmann-table.table-container
             table.table.table-bordered
@@ -136,17 +148,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in Daten.maehlmann
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #sonstiges.tab-pane.fade
           #sonstiges-table.table-container
             table.table.table-bordered
@@ -159,17 +174,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in Daten.sonstiges
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
 
       button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenterEinKunde'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Kunde hinzufügen  
       button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenter'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Mehrere Kunden hinzufügen  
@@ -205,17 +223,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in DatenZuZiehen.lufa
                   tr.table-secondary
                     td
-                      a.nav-linkTableA(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a.nav-linkTableA(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #claasZuZiehen.tab-pane.fade
           #claas-table.table-container.secondary-backgroundcolor
             table.table.table-bordered
@@ -228,17 +249,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in DatenZuZiehen.claas
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #gsagriZuZiehen.tab-pane.fade
           #gsagri-table.table-container
             table.table.table-bordered
@@ -251,17 +275,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in DatenZuZiehen.gsagri
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #lwkZuZiehen.tab-pane.fade
           #lwk-table.table-container
             table.table.table-bordered
@@ -274,17 +301,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in DatenZuZiehen.lwkniedersachsen
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #maehlmannZuZiehen.tab-pane.fade
           #maehlmann-table.table-container
             table.table.table-bordered
@@ -297,17 +327,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in DatenZuZiehen.maehlmann
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
         #sonstigesZuZiehen.tab-pane.fade
           #sonstiges-table.table-container
             table.table.table-bordered
@@ -320,17 +353,20 @@ block content
                   th.secondary-color(scope="col") E-Mail
                   th.secondary-color(scope="col") Wohnort
                   th.secondary-color(scope="col") Anzahl Flächen
+                  th.secondary-color(scope="col") Löschen
               tbody
                 each dat in DatenZuZiehen.sonstiges
                   tr.table-secondary
                     td
-                      a(href='/products/'+dat[0])= dat[0]
-                    td= dat[1]
-                    td= dat[2]
-                    td= dat[4]
-                    td= dat[3]
-                    td= dat[5]
-                    td= dat[6]
+                      a(href='/products/'+dat.KUNDENNUMMER)= dat.KUNDENNUMMER
+                    td= dat.VORNAME
+                    td= dat.NACHNAME
+                    td= dat.TELEFONNUMMER
+                    td= dat.E_MAIL
+                    td= dat.ORT
+                    td= dat.AnzahlFlaechen
+                    td.bestellung
+                      input.normal(type='checkbox', name=dat.KUNDENNUMMER)
     
       button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenterEinKunde'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Kunde hinzufügen  
       button.btn.btn-primary(type='button' data-toggle='modal' data-target='#exampleModalCenter'  class='btn btn-primary button float-right' style='margin-right:20px; margin-top:10px') Mehrere Kunden hinzufügen  
@@ -425,7 +461,19 @@ block content
             .modal-footer
               input.btn-primary.button.btn(type='submit', value='Hochladen!')
   
-  script. 
+  #kundenwirklichloeschen.modal.fade(tabindex='-1' role='dialog' aria-labelledby='kundenwirklichloeschen' aria-hidden='true')
+    .modal-dialog.modal-dialog-centered(role='document')
+      .modal-content.neutral-backgroundcolor
+        .modal-header
+          h5#exampleModalLongTitle.modal-title.text-white Kunden wirklich löschen?
+          button.close(type='button' data-dismiss='modal' aria-label='Close' onclick='resetCheckbox()')
+            span(aria-hidden='true') &times;
+        .modal-footer
+          button.btn.button.btn(type='button' data-dismiss='modal' onclick='resetCheckbox()') Abbrechen
+          button.btn.btn-danger.button.btn(type='button' id='btnDeleteCustomer' onclick='deleteCustomer()') Löschen
+
+  
+  script.
 
     document.getElementById('nurZuZiehendeKunden').addEventListener('change', function() {
       var checked = this.checked;
@@ -445,6 +493,54 @@ block content
     // Stellen Sie sicher, dass das div ausgeblendet ist, wenn die Seite geladen wird
     document.getElementById('tabContentZuZiehen').style.display = 'none';
 
+    var checkboxZumLoeschen ='';
+    
+    document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+      checkbox.addEventListener('change', function() {
+        if (this.checked) {
+          console.log('das heir ' + this.name)
+          checkboxZumLoeschen = this.name
+          $('#kundenwirklichloeschen').modal('show');
+        }
+      });
+    });
 
-    script(src='../routes/products.js')
+
+    function resetCheckbox() {
+      console.log('hier ist die ' + checkboxZumLoeschen)
+      var checkboxes = document.getElementsByName(checkboxZumLoeschen);
+
+      if (checkboxes.length > 0) {
+        checkboxes[0].checked = false;
+      } else {
+        console.error('Checkbox nicht gefunden.');
+      }
+
+      checkboxZumLoeschen ='';
+    }
+
+
+    function deleteCustomer() {
+      console.log('Checkbox zum Löschen:', checkboxZumLoeschen);
+
+      fetch('/products/deleteCustomer', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ kundeloeschen: checkboxZumLoeschen })
+      })
+      .then(response => response.status)
+      .then(status => handleResponse(status))
+      .catch(error => console.error('Error:', error));
+    }
+
+
+    function handleResponse(status) {
+      if (status === 200) {
+        location.reload()
+      } 
+    }
+
 

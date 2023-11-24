@@ -7,105 +7,59 @@ const MitarbeiterdatenGET = require('../database/oracle').getMitarbeiterdaten
 const anderPasswort = require('../database/oracle').anderPasswort
 
 
+var getNoticitcation = ''
 
 
 
-
-
-/* GET users listing. */
 router.get('/', async function(req, res, next) {
-    if(req.isAuthenticated()){
-      const userID = req.user.id
-      var Mitarbeiterdaten = await MitarbeiterdatenGET(userID)
-      const MitarbeiterdatenUebergabe = Mitarbeiterdaten
-      res.render('myAccount',{title: 'MyAccount', MitarbeiterDaten: MitarbeiterdatenUebergabe, login: true})
-    }
-    res.render('account', { title: 'Express',login: false});
+
+
+
+  if (req.isAuthenticated()) {
+      const userID = req.user.id;
+      try {
+          // Use the provided function getMitarbeiterdaten() instead of MitarbeiterdatenGET()
+          const Mitarbeiterdaten = await getMitarbeiterdaten();
+          res.render('myAccount', { title: 'MyAccount', MitarbeiterDaten: Mitarbeiterdaten, Notification: getNoticitcation, login: true });
+          getNoticitcation = '';
+      } catch (err) {
+          console.error('Error fetching Mitarbeiterdaten:', err);
+          res.status(500).send('Internal Server Error');
+      }
+  } else {
+      res.render('account', { title: 'Express', login: false });
+  }
 });
 
 
-/*
-router.post('/login',passport.authenticate('local',{
-    failureRedirect: '/',
-    failureFlash: true,
-}   ),(req,res)=>{
-  console.log('hier it was')
-  req.flash('success', 'Erfolgreich eingeloggt')
-  res.redirect('/cart')
-})*/
-
-
-/*
-router.post('/login', passport.authenticate('local', {
-  failureRedirect: '/',
-  failureFlash: true,
-}), (req, res) => {
-  // Hier greifen wir auf die Flash-Nachrichten zu
-  console.log('Du bist im login')
-  const errorMessages = req.flash('error');
-  
-  if (errorMessages.length > 0) {
-      // Es gibt Fehlermeldungen, die angezeigt werden sollen
-      res.render('account', { title: 'Express', login: false, errors: errorMessages });
-  } else {
-      // Es gibt keine Fehlermeldungen, der Benutzer wurde erfolgreich eingeloggt
-      req.flash('success', 'Erfolgreich eingeloggt');
-      res.redirect('/cart');
-  }
-});*/
 
 const authenticate = (req, res, next) => {
-  passport.authenticate('local', {
+  return new Promise((resolve, reject) => {
+    passport.authenticate('local', {
       failureRedirect: '/',
       failureFlash: true,
-  })(req, res, (err) => {
+    })(req, res, (err) => {
       if (err) {
-          // Fehler während der Authentifizierung
-          console.error('Fehler be der Authentifizierung:', err);
-        
-          return res.redirect('/'); // Oder leite zu einer anderen Seite weiter
+        console.error('Fehler bei der Authentifizierung:', err);
+        reject(err);
+      } else {
+        resolve();
       }
-      //return 'HALLO'
-      // Authentifizierung erfolgreich, rufe die nächste Middleware auf
-      return next();
+    });
   });
-
-  return 'NEIN'
 };
 
-router.post('/login', authenticate, (req, res) => {
-  // Hier greifen wir auf die Flash-Nachrichten zu
-  console.log('Du bist m login ' + authenticate);
-  const errorMessages = req.flash('error');
-
-  if (errorMessages.length > 0) {
-      // Es gibt Fehlermeldungen, die angezeigt werden sollen
-      res.render('account', { title: 'Express', login: false, errors: errorMessages });
-  } else {
-      // Es gibt keine Fehlermeldungen, der Benutzer wurde erfolgreich eingeloggt
-      req.flash('success', 'Erfolgreich eingeloggt');
-      res.redirect('/cart');
+router.post('/login', async (req, res) => {
+  try {
+    await authenticate(req, res);
+    req.flash('success', 'Erfolgreich eingeloggt');
+    res.redirect('/cart');
+  } catch (err) {
+    const errorMessages = req.flash('error');
+    res.render('account', { title: 'Express', login: false, errors: errorMessages });
   }
 });
 
-
-
-
-/**
- * router.post('/login', passport.authenticate('local', {
-  failureRedirect: '/',
-  failureFlash: true,
-}), (req, res) => {
-  console.log('HIWE ' + req.authInfo)
-  if (req.authInfo) {
-      // Falsches Passwort wurde eingegeben
-      res.render('account', { title: 'Express', login: false, showPasswordError: true });
-  } else {
-      req.flash('success', 'Erfolgreich eingeloggt');
-      res.redirect('/cart');
-  }
-});
- */
 
 router.delete('/logout', function(req, res, next) {
     req.logout(function(err) {
@@ -114,6 +68,8 @@ router.delete('/logout', function(req, res, next) {
       res.redirect('/');
     });
   });
+
+
 
 router.post('/register', async (req,res) => {
     try {
@@ -130,10 +86,37 @@ router.post('/register', async (req,res) => {
 })
 
 
+router.put('/passworteandern', async (req, res) => {
+  const userID = 2 //req.user.id;
+  const { neuesPasswort, passwortWiederholen } = req.body;
+
+  console.log('Neues Passwort auf Serverseite: ', neuesPasswort);
+  console.log('Passwort wiederholen auf Serverseite: ', passwortWiederholen);
+
+  if (neuesPasswort === passwortWiederholen) {
+    try {
+      const hashedPassword = await bcrypt.hash(passwortWiederholen, 10);
+      console.log('hashpasswort' + hashedPassword);
+      await anderPasswort(userID, hashedPassword);
+      res.sendStatus(200);
+    } catch(error){
+      res.sendStatus(404)
+    }
+  } else {
+    res.sendStatus(404)
+  }
+});
+
+
+
+
+
+
 router.put('/add', async (req,res) => {
+  console.log('hallo ')
   if(req.isAuthenticated()){
       const userID = req.user.id
-      const passwordNewInput = req.body.passwordNewInput
+      const passwordNewInput = req.body.neuesPasswort
       const passwordWiederholtInput = req.body.passwordWiederholtInput
 
 
@@ -145,7 +128,8 @@ router.put('/add', async (req,res) => {
         res.send(200)
       }
   }
-  console.log(req.user);
 })
+
+
 
 module.exports = router;

@@ -1,7 +1,24 @@
 const config = require('./conf')
-const oracledb = require('oracledb')
+//const oracledb = require('oracledb')
+//const mysql = require('mysql')
+//const oracledb = require('mysql2')
+
+const mysql = require('mysql2/promise'); // Verwende die Promise-basierte Version von mysql2
+
+
 const { query } = require('express')
 
+//const connection = mysql.createConnection(config);
+
+/*
+connection.connect((err) => {
+  if (err) {
+    console.error('Fehler beim Verbinden zur MySQL-Datenbank: ' + err.stack);
+    return;
+  }
+
+  console.log('Erfolgreich mit der MySQL-Datenbank verbunden');
+});*/
 
 
 
@@ -52,7 +69,7 @@ async function initiateOrder(userID) {
     let position = 1
 
     for (let productg in productsForBestellung.rows){
-      await conn.execute('INSERT INTO BESTELLUNG_ENTHÄLT_PRODUKT (ARTIKELNR, KUNDENNUMMER) VALUES (:artnr,:userID)',[productsForBestellung.rows[productg][1],userID])
+      await conn.execute('INSERT INTO BESTELLUNG_ENTHAELT_PRODUKT (ARTIKELNR, KUNDENNUMMER) VALUES (:artnr,:userID)',[productsForBestellung.rows[productg][1],userID])
       position = position + 1
     }
 
@@ -70,97 +87,80 @@ async function initiateOrder(userID) {
 }
 
 
+
 async function fleacheAufBearbeitetSetzen(productIDs) {
-  let conn
+  const connection = await mysql.createConnection(config);
+
 
   try {
-
-    conn = await oracledb.getConnection(config)
-
-
-
-
     for (const id of productIDs) {
 
-      await conn.execute("delete PRODUKT_ENTHÄLT_PROBE where ARTIKELNR = :productID",[id.productId])
+      console.log('HIER')
+      await connection.execute("DELETE FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ?", [id.productId]);
 
-      await conn.execute("UPDATE PRODUKT set STARTDATUM = TO_DATE(:dateValue,'yyyy-mm-dd') where ARTIKELNR = :id",[id.dateValue, id.productId]);
+      await connection.execute("UPDATE PRODUKT SET STARTDATUM = STR_TO_DATE(?, '%Y-%m-%d') WHERE ARTIKELNR = ?", [id.dateValue, id.productId]);
 
-    
-
-      if(id.NminValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,3)",[id.productId])
-      } 
-      
-      if(id.SminValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,3)",[id.productId])
+      if (id.NminValue == 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 3)", [id.productId]);
       }
 
-      if(id.HumusValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,3)",[id.productId])
+      if (id.SminValue == 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 2, 3)", [id.productId]);
       }
 
-      if(id.CnValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,4,3)",[id.productId])
+      if (id.HumusValue == 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 3, 3)", [id.productId]);
       }
 
+      if (id.CnValue == 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 4, 3)", [id.productId]);
+      }
     }
 
- 
-    conn.commit()
-  } catch (err) {
-    console.log('Ouch!', err)
+    await connection.commit();
+  } catch (error) {
+    console.log('Ouch!', error);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
-
-
-
 
 async function getaufBearbeitenStellen(productIDs) {
-
-  let conn
+  const connection = await mysql.createConnection(config);
 
   try {
-    conn = await oracledb.getConnection(config)
     for (const id of productIDs) {
+      await connection.execute("DELETE FROM PRODUKT_ENTHAELT_PROBE WHERE ARTIKELNR = ?", [id.productId]);
 
-      await conn.execute("delete PRODUKT_ENTHÄLT_PROBE where ARTIKELNR = :productID",[id.productId])
-
-
-    
-
-      if(id.NminValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[id.productId])
-      } 
-      
-      if(id.SminValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,1)",[id.productId])
+      if (id.NminValue == 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 1)", [id.productId]);
       }
 
-      if(id.HumusValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,1)",[id.productId])
+      if (id.SminValue == 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 2, 1)", [id.productId]);
       }
 
-      if(id.CnValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,4,1)",[id.productId])
+      if (id.HumusValue == 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 3, 1)", [id.productId]);
       }
 
+      if (id.CnValue == 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 4, 1)", [id.productId]);
+      }
     }
 
- 
-    conn.commit()
-  } catch (err) {
-    console.log('Ouch!', err)
+    await connection.commit();
+  } catch (error) {
+    console.log('Ouch!', error);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
+
 
 
 async function initiateOrderNew(userID,productID,NminValue,MangatValue,StickstoffValue) {
@@ -171,22 +171,22 @@ async function initiateOrderNew(userID,productID,NminValue,MangatValue,Stickstof
 
     //TODO eigentlich muss deletet und dann neu gemacht werden 
 
-    await conn.execute("delete PRODUKT_ENTHÄLT_PROBE where ARTIKELNR = :productID",[productID])
+    await conn.execute("delete PRODUKT_ENTHAELT_PROBE where ARTIKELNR = :productID",[productID])
 
 
 
 
 
     if(MangatValue=='j'){
-      await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
+      await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
     } 
     
     if(NminValue=='j'){
-      await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,1)",[productID])
+      await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,1)",[productID])
     }
 
     if(StickstoffValue=='j'){
-      await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,1)",[productID])
+      await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,1)",[productID])
     }
 
  
@@ -226,296 +226,261 @@ async function deleteFromCart(userID,productID){
   }
 }
 
-async function getfleachenFromAllUser(userID) {
-  let conn
-  let fleachen
+async function getfleachenFromAllUser() {
+  let connection;
+  let flaechen;
 
   try {
-    conn = await oracledb.getConnection(config)   
+    connection = await mysql.createConnection(config);
 
-    //Alle Produkte des Warenkorbs des Users auslesen
-    fleachen = await conn.execute(`SELECT DISTINCT fc.ARTIKELNR, fc.FKOORDINATENIDLAT, fc.FKOORDINATENIDLNG, fc.POSITIONSPUNKT,
-    CASE WHEN PP.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_nmin,
-    CASE WHEN PSmin.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_smin,
-    CASE WHEN PHumus.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_humus,
-    CASE WHEN PCN.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_cn,
-    P.FLÄCHENNAME, P.STARTDATUM, P.FLEACHENART, P.KUNDENNUMMER, 
-    PEP.PROBENSTATUS
-    FROM FLEACHENKOORDINATE fc
-    JOIN PRODUKT P ON p.ARTIKELNR = fc.ARTIKELNR
-    JOIN PRODUKT_ENTHÄLT_PROBE PEP ON p.ARTIKELNR = PEP.ARTIKELNR
-    JOIN BESTELLUNG_ENTHÄLT_PRODUKT wp ON wp.ARTIKELNR = p.ARTIKELNR
-    JOIN BESTELLUNG w ON w.KUNDENNUMMER = wp.KUNDENNUMMER
-        LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND PP.PROBENARTID = 1
-LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PSmin ON P.ARTIKELNR = PSmin.ARTIKELNR AND PSmin.PROBENARTID = 2
-LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PHumus ON P.ARTIKELNR = PHumus.ARTIKELNR AND PHumus.PROBENARTID = 3
-  LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PCN ON P.ARTIKELNR = PCN.ARTIKELNR AND PCN.PROBENARTID = 4
-    order by ARTIKELNR, POSITIONSPUNKT
+    const [result] = await connection.execute(`
+      SELECT DISTINCT fc.ARTIKELNR, fc.FKOORDINATENIDLAT, fc.FKOORDINATENIDLNG, fc.POSITIONSPUNKT,
+      CASE WHEN PP.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_nmin,
+      CASE WHEN PSmin.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_smin,
+      CASE WHEN PHumus.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_humus,
+      CASE WHEN PCN.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_cn,
+      P.FLAECHENNAME, P.STARTDATUM, P.FLEACHENART, P.KUNDENNUMMER, 
+      PEP.PROBENSTATUS
+      FROM FLEACHENKOORDINATE fc
+      JOIN PRODUKT P ON P.ARTIKELNR = fc.ARTIKELNR
+      JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR
+      JOIN BESTELLUNG_ENTHAELT_PRODUKT WP ON WP.ARTIKELNR = P.ARTIKELNR
+      JOIN BESTELLUNG W ON W.KUNDENNUMMER = WP.KUNDENNUMMER
+      LEFT JOIN PRODUKT_ENTHAELT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND PP.PROBENARTID = 1
+      LEFT JOIN PRODUKT_ENTHAELT_PROBE PSmin ON P.ARTIKELNR = PSmin.ARTIKELNR AND PSmin.PROBENARTID = 2
+      LEFT JOIN PRODUKT_ENTHAELT_PROBE PHumus ON P.ARTIKELNR = PHumus.ARTIKELNR AND PHumus.PROBENARTID = 3
+      LEFT JOIN PRODUKT_ENTHAELT_PROBE PCN ON P.ARTIKELNR = PCN.ARTIKELNR AND PCN.PROBENARTID = 4
+      ORDER BY ARTIKELNR, POSITIONSPUNKT
+    `);
 
-`);
-    return fleachen
-  } catch (err) {
-    console.log('Ouch!', err)
+    return result;
+  } catch (error) {
+    console.error('Fehler bei der MySQL-Abfrage:', error);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
 
 async function getFleachenFromUserBestellt(userID) {
-  let conn
-  let fleachen
+  let conn;
+  let fleachen;
 
   try {
-    conn = await oracledb.getConnection(config)
-    
+    conn = await mysql.createConnection(config);
+
     fleachen = await conn.execute(`
       SELECT DISTINCT fc.ARTIKELNR, fc.FKOORDINATENIDLAT, fc.FKOORDINATENIDLNG, fc.POSITIONSPUNKT, PEP.PROBENSTATUS
       FROM FLEACHENKOORDINATE fc
       JOIN PRODUKT p ON p.ARTIKELNR = fc.ARTIKELNR
-      JOIN PRODUKT_ENTHÄLT_PROBE PEP ON p.ARTIKELNR = PEP.ARTIKELNR
-      JOIN BESTELLUNG_ENTHÄLT_PRODUKT wp ON wp.ARTIKELNR = p.ARTIKELNR
+      JOIN PRODUKT_ENTHAELT_PROBE PEP ON p.ARTIKELNR = PEP.ARTIKELNR
+      JOIN BESTELLUNG_ENTHAELT_PRODUKT wp ON wp.ARTIKELNR = p.ARTIKELNR
       JOIN BESTELLUNG w ON w.KUNDENNUMMER = wp.KUNDENNUMMER
       JOIN KUNDE k ON k.KUNDENNUMMER = w.KUNDENNUMMER
-      WHERE K.KUNDENNUMMER = :userID
-      order by fc.ARTIKELNR, fc.POSITIONSPUNKT
-    `,[userID]);
+      WHERE K.KUNDENNUMMER = ? 
+      ORDER BY fc.ARTIKELNR, fc.POSITIONSPUNKT
+    `, [userID]);
 
-    return fleachen
+    return fleachen[0];
   } catch (err) {
-    console.log('Ouch!', err)
+    console.log('Ouch!', err);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (conn) {
+      await conn.end();
     }
   }
 }
 
 
+
 async function getCartFromUser(userID) {
-  let conn
+
+  if (userID === null || userID === undefined) {
+    console.error('userID ist null oder undefined.');
+    return null; // Oder einen anderen Wert oder Fehlercode zurückgeben
+  }
+
+
+  let connection;
   let cart = {
     gesamtsummeInklMwst: null,
     gesamtsumme: null,
     mwst: null,
     products: []
-  }
+  };
 
   try {
-    conn = await oracledb.getConnection(config)
-    
-    //Gesamtsumme inkl. MwSt ermitteln
-    let result = await conn.execute(
-      'select GESAMTSUMME from WARENKORB where KUNDENNUMMER = :userID',[userID]
-    )
+    connection = await mysql.createConnection(config);
+    // Gesamtsumme inkl. MwSt ermitteln
+    const [result1] = await connection.execute(
+      'SELECT GESAMTSUMME FROM WARENKORB WHERE KUNDENNUMMER = ?',
+      [userID]
+    );
 
-    if(result.rows[0] != null){
-      cart.gesamtsummeInklMwst = result.rows[0][0]
+    if (result1.length > 0) {
+      cart.gesamtsummeInklMwst = result1[0].GESAMTSUMME;
     }
-    
-    //Alle Produkte des Warenkorbs des Users auslesen
-    let result2 = await conn.execute('SELECT * from Produkt where ARTIKELNR IN (SELECT ARTIKELNR from WARENKORB_ENTHÄLT_PRODUKT where KUNDENNUMMER = :userID)',[userID])
-    cart.products = result2.rows
 
+    // Alle Produkte des Warenkorbs des Users auslesen
+    const [result2] = await connection.execute(`
+      SELECT * FROM Produkt 
+      WHERE ARTIKELNR IN (
+        SELECT ARTIKELNR FROM WARENKORB_ENTHÄLT_PRODUKT WHERE KUNDENNUMMER = ?
+      )`,
+      [userID]
+    );
 
-    //Alle Produkte des Warenkorbs des Users auslesen
-    let result43 = await conn.execute(`
-    SELECT
-    P.*,
-    CASE WHEN PP.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_nmin,
-    CASE WHEN PSmin.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_smin,
-    CASE WHEN PHumus.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_humus,
-    CASE WHEN PCN.PROBENARTID IS NOT NULL THEN 1 ELSE 0 END AS enthält_cn
-FROM
-    Kunde K
-JOIN
-    Warenkorb W ON K.KUNDENNUMMER = W.KUNDENNUMMER
-JOIN
-    Warenkorb_enthält_produkt WP ON W.KUNDENNUMMER = WP.KUNDENNUMMER
-JOIN
-    Produkt P ON WP.ARTIKELNR = P.ARTIKELNR
-LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND PP.PROBENARTID = 1
-LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PSmin ON P.ARTIKELNR = PSmin.ARTIKELNR AND PSmin.PROBENARTID = 2
-LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PHumus ON P.ARTIKELNR = PHumus.ARTIKELNR AND PHumus.PROBENARTID = 3
-  LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PCN ON P.ARTIKELNR = PCN.ARTIKELNR AND PCN.PROBENARTID = 4
-WHERE
-    K.KUNDENNUMMER = :userID
-`,[userID]);
+    cart.products = result2;
 
+    // Gesamtsumme ohne MwSt Anteil berechnen
+    const [result3] = await connection.execute(`
+      SELECT SUM(PRODUKT.PREIS) AS gesamtsumme 
+      FROM PRODUKT 
+      JOIN WARENKORB_ENTHÄLT_PRODUKT ON PRODUKT.ARTIKELNR = WARENKORB_ENTHÄLT_PRODUKT.ARTIKELNR 
+      WHERE WARENKORB_ENTHÄLT_PRODUKT.KUNDENNUMMER = ?
+    `,
+      [userID]
+    );
 
-      cart.products = result43.rows
+    cart.gesamtsumme = result3[0].gesamtsumme;
 
-    //Gesamtsumme ohne MwSt Anteil berechnen
-      const result3 = await conn.execute('select sum(PRODUKT.PREIS) from PRODUKT,WARENKORB_ENTHÄLT_PRODUKT where PRODUKT.ARTIKELNR = WARENKORB_ENTHÄLT_PRODUKT.ARTIKELNR AND WARENKORB_ENTHÄLT_PRODUKT.KUNDENNUMMER = :userID ',[userID])
-      cart.gesamtsumme = result3.rows[0][0]
-    
-    //MwSt berechnen
-      cart.mwst = cart.gesamtsummeInklMwst - cart.gesamtsumme
+    // MwSt berechnen
+    cart.mwst = cart.gesamtsummeInklMwst - cart.gesamtsumme;
 
-    return cart
-  } catch (err) {
-    console.log('Ouch!', err)
+    return cart;
+
+  } catch (error) {
+    console.error('Fehler bei der MySQL-Abfrage:', error);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
 
 
+
 async function getInformationsForGenerateKmlFile(productIDs) {
-  const conn = await oracledb.getConnection(config);
 
+  const connection = await mysql.createConnection(config);
 
-
-  // Initialisieren Sie das Array
   const infoProductIDs = [];
 
-  // Fügen Sie für jede ID ein Objekt hinzu
+  try {
+    if (Array.isArray(productIDs)) {
+      for (const id of productIDs) {
 
-  if (Array.isArray(productIDs)) {
-    for (const id of productIDs) {
-      const infoProdukt = await conn.execute('select ARTIKELNR, KUNDENNUMMER, STARTDATUM, FLEACHENART , FLÄCHENNAME  from PRODUKT where ARTIKELNR = :id', [id])
-      const infoFlaechenkoordinate = await conn.execute('select FKOORDINATENIDLNG,FKOORDINATENIDLAT from FLEACHENKOORDINATE where ARTIKELNR = :id order by POSITIONSPUNKT', [id])
-      const infoFlaechenkoordinateErste = await conn.execute('select FKOORDINATENIDLNG,FKOORDINATENIDLAT from FLEACHENKOORDINATE where ARTIKELNR = :id and POSITIONSPUNKT = 1', [id])
-      
+        const [infoProdukt] = await connection.execute('SELECT ARTIKELNR, KUNDENNUMMER, STARTDATUM, FLEACHENART, FLAECHENNAME FROM PRODUKT WHERE ARTIKELNR = ?', [id]);
+        const [infoFlaechenkoordinate] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? ORDER BY POSITIONSPUNKT', [id]);
+        const [infoFlaechenkoordinateErste] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND POSITIONSPUNKT = 1', [id]);
 
+        const flaecheninfo = infoFlaechenkoordinate.map(row => `${row.FKOORDINATENIDLNG},${row.FKOORDINATENIDLAT}`);
 
-      const flaecheninfo = infoFlaechenkoordinate.rows;
-      const flaecheninfoErste = infoFlaechenkoordinateErste.rows
+        const flaecheninfoErste = `${infoFlaechenkoordinateErste[0].FKOORDINATENIDLNG},${infoFlaechenkoordinateErste[0].FKOORDINATENIDLAT}`;
+        const coordinates = flaecheninfo.join(' ') + ' ' + flaecheninfoErste;
 
-      // Umwandlung des Arrays in ein Array von Koordinatenpaaren
-      var coordinates = '';
-      for (let i = 0; i < flaecheninfo.length; i ++) {
-        coordinates = coordinates + '' + flaecheninfo[i][0] + ',' + flaecheninfo[i][1] + ' ';
+        infoProductIDs.push({
+          id: id,
+          produktinfo: [infoProdukt[0]],
+          flaecheninfo: [coordinates]
+        });
       }
+    } else {
+      const [infoProdukt] = await connection.execute('SELECT ARTIKELNR, KUNDENNUMMER, STARTDATUM, FLEACHENART, FLAECHENNAME FROM PRODUKT WHERE ARTIKELNR = ?', [productIDs]);
+      const [infoFlaechenkoordinate] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? ORDER BY POSITIONSPUNKT', [productIDs]);
+      const [infoFlaechenkoordinateErste] = await connection.execute('SELECT FKOORDINATENIDLNG, FKOORDINATENIDLAT FROM FLEACHENKOORDINATE WHERE ARTIKELNR = ? AND POSITIONSPUNKT = 1', [productIDs]);
+      const flaecheninfo = infoFlaechenkoordinate.map(row => `${row.FKOORDINATENIDLNG},${row.FKOORDINATENIDLAT}`);
 
-      coordinates = coordinates + '' + flaecheninfoErste[0][0] + ',' + flaecheninfoErste[0][1]
+      const flaecheninfoErste = `${infoFlaechenkoordinateErste[0].FKOORDINATENIDLNG},${infoFlaechenkoordinateErste[0].FKOORDINATENIDLAT}`;
+      const coordinates = flaecheninfo.join(' ') + ' ' + flaecheninfoErste;
 
-      
       infoProductIDs.push({
-        id: id,
-        produktinfo: [infoProdukt.rows[0]],
+        id: productIDs,
+        produktinfo: [infoProdukt[0]],
         flaecheninfo: [coordinates]
       });
+
     }
-  } else {
-    const infoProdukt = await conn.execute('select ARTIKELNR, KUNDENNUMMER, STARTDATUM, FLEACHENART , FLÄCHENNAME  from PRODUKT where ARTIKELNR = :id', [productIDs])
-    const infoFlaechenkoordinate = await conn.execute('select FKOORDINATENIDLNG,FKOORDINATENIDLAT from FLEACHENKOORDINATE where ARTIKELNR = :id order by POSITIONSPUNKT', [productIDs])
-    const infoFlaechenkoordinateErste = await conn.execute('select FKOORDINATENIDLNG,FKOORDINATENIDLAT from FLEACHENKOORDINATE where ARTIKELNR = :id and POSITIONSPUNKT = 1', [productIDs])
-    
-
-
-    const flaecheninfo = infoFlaechenkoordinate.rows;
-    const flaecheninfoErste = infoFlaechenkoordinateErste.rows
-
-    // Umwandlung des Arrays in ein Array von Koordinatenpaaren
-    var coordinates = '';
-    for (let i = 0; i < flaecheninfo.length; i ++) {
-      coordinates = coordinates + '' + flaecheninfo[i][0] + ',' + flaecheninfo[i][1] + ' ';
+  } catch (error) {
+    console.log('Ouch!', error);
+  } finally {
+    if (connection) {
+      await connection.end();
     }
-
-    coordinates = coordinates + '' + flaecheninfoErste[0][0] + ',' + flaecheninfoErste[0][1]
-
-    
-    infoProductIDs.push({
-      id: productIDs,
-      produktinfo: [infoProdukt.rows[0]],
-      flaecheninfo: [coordinates]
-    });
   }
-
-
-
-
-
-  if (conn) { 
-    await conn.close();
-  }
-
-
   return infoProductIDs;
 }
 
 
+
 async function getBestllungenFromUser(userID) {
-  let conn
+  let connection;
   let cart = {
-    gesamtsummeInklMwst: null,
     gesamtsumme: null,
     mwst: null,
     products: []
   }
 
   try {
-    conn = await oracledb.getConnection(config)
+    connection = await mysql.createConnection(config);
 
 
-    
-    //Gesamtsumme inkl. MwSt ermitteln
-    let result = await conn.execute(
-      'select GESAMTSUMME from WARENKORB where KUNDENNUMMER = :userID',[userID]
-    )
-    cart.gesamtsummeInklMwst = result.rows[0]
-    
-    //Alle Produkte des Warenkorbs des Users auslesen
-    let result2 = await conn.execute('SELECT * from Produkt where ARTIKELNR IN (SELECT ARTIKELNR from WARENKORB_ENTHÄLT_PRODUKT where KUNDENNUMMER = :userID)',[userID])
-    cart.products = result2.rows
 
+    // Alle Produkte des Warenkorbs des Users auslesen
+    const [result2] = await connection.execute(
+      'SELECT * FROM Produkt WHERE ARTIKELNR IN (SELECT ARTIKELNR FROM WARENKORB_ENTHÄLT_PRODUKT WHERE KUNDENNUMMER = ?)',
+      [userID]
+    );
+    cart.products = result2;
 
-    //Alle Produkte des Warenkorbs des Users auslesen
-    let result43 = await conn.execute(`
-    SELECT
-    P.*,
-    CASE WHEN PP.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_mangat,
-    CASE WHEN PP.PROBENARTID IS NOT NULL THEN PP.PROBENSTATUS ELSE 0 END AS statusmangat,
-    CASE WHEN PE.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_emin,
-    CASE WHEN PE.PROBENARTID IS NOT NULL THEN PE.PROBENSTATUS ELSE 0 END AS statusemin,
-    CASE WHEN PS.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_stickstoff,
-    CASE WHEN PS.PROBENARTID IS NOT NULL THEN PS.PROBENSTATUS ELSE 0 END AS statusstickstoff
-    FROM
-    Produkt P
-JOIN
-    Bestellung_enthält_Produkt B ON P.ARTIKELNR = B.ARTIKELNR
-JOIN
-    Bestellung O ON B.KUNDENNUMMER = O.KUNDENNUMMER
-LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND PP.PROBENARTID = 1
-LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PE ON P.ARTIKELNR = PE.ARTIKELNR AND PE.PROBENARTID = 2
-LEFT JOIN
-    PRODUKT_ENTHÄLT_PROBE PS ON P.ARTIKELNR = PS.ARTIKELNR AND PS.PROBENARTID = 3
-WHERE
-    O.Kundennummer = :userID
-`,[userID])
+    // Alle Produkte des Warenkorbs des Users auslesen
+    const [result3] = await connection.execute(`
+      SELECT
+        P.*,
+        CASE WHEN PP.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_mangat,
+        CASE WHEN PP.PROBENARTID IS NOT NULL THEN PP.PROBENSTATUS ELSE 0 END AS statusmangat,
+        CASE WHEN PE.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_emin,
+        CASE WHEN PE.PROBENARTID IS NOT NULL THEN PE.PROBENSTATUS ELSE 0 END AS statusemin,
+        CASE WHEN PS.PROBENARTID IS NOT NULL THEN 'J' ELSE 'N' END AS enthält_stickstoff,
+        CASE WHEN PS.PROBENARTID IS NOT NULL THEN PS.PROBENSTATUS ELSE 0 END AS statusstickstoff
+      FROM
+        Produkt P
+      JOIN
+        BESTELLUNG_ENTHAELT_PRODUKT B ON P.ARTIKELNR = B.ARTIKELNR
+      JOIN
+        Bestellung O ON B.KUNDENNUMMER = O.KUNDENNUMMER
+      LEFT JOIN
+        PRODUKT_ENTHAELT_PROBE PP ON P.ARTIKELNR = PP.ARTIKELNR AND PP.PROBENARTID = 1
+      LEFT JOIN
+        PRODUKT_ENTHAELT_PROBE PE ON P.ARTIKELNR = PE.ARTIKELNR AND PE.PROBENARTID = 2
+      LEFT JOIN
+        PRODUKT_ENTHAELT_PROBE PS ON P.ARTIKELNR = PS.ARTIKELNR AND PS.PROBENARTID = 3
+      WHERE
+        O.Kundennummer = ?
+    `, [userID]);
+    cart.products = result3;
 
-  cart.products = result43.rows
+    // Gesamtsumme ohne MwSt Anteil berechnen
+    const [result4] = await connection.execute(
+      'SELECT SUM(PRODUKT.PREIS) FROM PRODUKT, WARENKORB_ENTHÄLT_PRODUKT WHERE PRODUKT.ARTIKELNR = WARENKORB_ENTHÄLT_PRODUKT.ARTIKELNR AND WARENKORB_ENTHÄLT_PRODUKT.KUNDENNUMMER = ?',
+      [userID]
+    );
+    cart.gesamtsumme = result4[0]['SUM(PRODUKT.PREIS)'];
 
-    //Gesamtsumme ohne MwSt Anteil berechnen
-      const result3 = await conn.execute('select sum(PRODUKT.PREIS) from PRODUKT,WARENKORB_ENTHÄLT_PRODUKT where PRODUKT.ARTIKELNR = WARENKORB_ENTHÄLT_PRODUKT.ARTIKELNR AND WARENKORB_ENTHÄLT_PRODUKT.KUNDENNUMMER = :userID ',[userID])
-      cart.gesamtsumme = result3.rows[0][0]
-    
-    //MwSt berechnen
-      cart.mwst = cart.gesamtsummeInklMwst - cart.gesamtsumme
+    // MwSt berechnen
+    cart.mwst = cart.gesamtsummeInklMwst - cart.gesamtsumme;
 
-    return cart
+    return cart;
   } catch (err) {
-    console.log('Ouch!', err)
+    console.error('Ouch!', err);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
+
 
 
 async function getKundenDatenMitGeoDaten(geoID){
@@ -542,7 +507,7 @@ async function getKundenDatenMitGeoDaten(geoID){
     LEFT JOIN
         Bestellung ON Kunde.KUNDENNUMMER = Bestellung.KUNDENNUMMER
     LEFT JOIN
-        Bestellung_enthält_Produkt B ON Bestellung.KUNDENNUMMER = B.KUNDENNUMMER
+    BESTELLUNG_ENTHAELT_PRODUKT B ON Bestellung.KUNDENNUMMER = B.KUNDENNUMMER
     LEFT JOIN
         Produkt P ON B.ARTIKELNR = P.ARTIKELNR
         where GEODATENGEBERID = :geoID
@@ -562,154 +527,200 @@ async function getKundenDatenMitGeoDaten(geoID){
 }
 
 
-async function getKundenDatenMitGeoDatenDieZuZiehenSind(geoID){
+async function getKundenDatenMitGeoDatenDieZuZiehenSind(geoID) {
+  let connection;
   try {
-    conn = await oracledb.getConnection(config)
+    connection = await mysql.createConnection(config);
 
-    const result =  await conn.execute(`SELECT
-    Kunde.KUNDENNUMMER,
-    Kunde.VORNAME,
-    Kunde.NACHNAME,
-    Kunde.E_MAIL,
-    Kunde.TELEFONNUMMER,
-    Adresse.ORT,
-    COALESCE(COUNT(P.ARTIKELNR), 0) AS AnzahlFlaechen
-    FROM
+    const [rows] = await connection.execute(`
+      SELECT 
+        Kunde.KUNDENNUMMER,
+        Kunde.VORNAME,
+        Kunde.NACHNAME,
+        Kunde.E_MAIL,
+        Kunde.TELEFONNUMMER,
+        Adresse.ORT,
+        COALESCE(COUNT(P.ARTIKELNR), 0) AS AnzahlFlaechen
+      FROM
         Kunde
-    JOIN
+        JOIN Kunde_Hat_Adresse ON Kunde.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
+        JOIN Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
+          AND Kunde_Hat_Adresse.ORT = Adresse.ORT
+          AND Kunde_Hat_Adresse.POSTLEITZAHL = Adresse.POSTLEITZAHL
+          AND Kunde_Hat_Adresse.HAUSNUMMER = Adresse.HAUSNUMMER
+        LEFT JOIN Bestellung ON Kunde.KUNDENNUMMER = Bestellung.KUNDENNUMMER
+        LEFT JOIN BESTELLUNG_ENTHAELT_PRODUKT B ON Bestellung.KUNDENNUMMER = B.KUNDENNUMMER
+        LEFT JOIN Produkt P ON B.ARTIKELNR = P.ARTIKELNR
+        LEFT JOIN PRODUKT_ENTHAELT_PROBE PEP ON P.ARTIKELNR = PEP.ARTIKELNR
+      WHERE
+        GEODATENGEBERID = ?
+        AND PEP.PROBENSTATUS = 1
+      GROUP BY
+        Kunde.KUNDENNUMMER, Adresse.ORT, Kunde.TELEFONNUMMER, Kunde.VORNAME, Kunde.NACHNAME, Kunde.E_MAIL
+      ORDER BY
+        KUNDENNUMMER
+    `, [geoID]);
+
+    return rows;
+  } catch (error) {
+    console.error('Ouch!', error);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+
+async function getKundendatenDieZuZiehenSind() {
+  let connection;
+  let resultsKundendaten = {
+    lufa: [],
+    claas: [],
+    gsagri: [],
+    lwkniedersachsen: [],
+    maehlmann: [],
+    sonstiges: [],
+  };
+
+  try {
+    connection = await mysql.createConnection(config);
+
+    const resultLufa = await getKundenDatenMitGeoDatenDieZuZiehenSind(1, connection);
+    const resultclaas = await getKundenDatenMitGeoDatenDieZuZiehenSind(2, connection);
+    const resultgsagri = await getKundenDatenMitGeoDatenDieZuZiehenSind(3, connection);
+    const resultlwkniedersachsen = await getKundenDatenMitGeoDatenDieZuZiehenSind(4, connection);
+    const resultmaehlmann = await getKundenDatenMitGeoDatenDieZuZiehenSind(5, connection);
+    const resultsonsttiges = await getKundenDatenMitGeoDatenDieZuZiehenSind(6, connection);
+
+    resultsKundendaten.lufa = resultLufa;
+    resultsKundendaten.claas = resultclaas;
+    resultsKundendaten.gsagri = resultgsagri;
+    resultsKundendaten.lwkniedersachsen = resultlwkniedersachsen;
+    resultsKundendaten.maehlmann = resultmaehlmann;
+    resultsKundendaten.sonstiges = resultsonsttiges;
+
+    return resultsKundendaten;
+  } catch (error) {
+    console.error('Ouch!', error);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+
+
+
+async function getKundendaten() {
+  let connection;
+  let resultsKundendaten = {
+    lufa: [],
+    claas: [],
+    gsagri: [],
+    lwkniedersachsen: [],
+    maehlmann: [],
+    sonstiges: [],
+  };
+
+  try {
+    connection = await mysql.createConnection(config);
+
+    const resultLufa = await getKundenDatenMitGeoDaten(1, connection);
+    const resultclaas = await getKundenDatenMitGeoDaten(2, connection);
+    const resultgsagri = await getKundenDatenMitGeoDaten(3, connection);
+    const resultlwkniedersachsen = await getKundenDatenMitGeoDaten(4, connection);
+    const resultmaehlmann = await getKundenDatenMitGeoDaten(5, connection);
+    const resultsonsttiges = await getKundenDatenMitGeoDaten(6, connection);
+
+    resultsKundendaten.lufa = resultLufa;
+    resultsKundendaten.claas = resultclaas;
+    resultsKundendaten.gsagri = resultgsagri;
+    resultsKundendaten.lwkniedersachsen = resultlwkniedersachsen;
+    resultsKundendaten.maehlmann = resultmaehlmann;
+    resultsKundendaten.sonstiges = resultsonsttiges;
+
+    return resultsKundendaten;
+  } catch (error) {
+    console.error('Ouch!', error);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
+async function getKundenDatenMitGeoDaten(geoID) {
+  let connection;
+  try {
+    connection = await mysql.createConnection(config);
+
+    const [rows] = await connection.execute(`
+      SELECT
+        Kunde.KUNDENNUMMER,
+        Kunde.VORNAME,
+        Kunde.NACHNAME,
+        Kunde.E_MAIL,
+        Kunde.TELEFONNUMMER,
+        Adresse.ORT,
+        COALESCE(COUNT(P.ARTIKELNR), 0) AS AnzahlFlaechen
+      FROM
+        Kunde
+      JOIN
         Kunde_Hat_Adresse ON Kunde.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
-    JOIN
+      JOIN
         Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
         AND Kunde_Hat_Adresse.ORT = Adresse.ORT
         AND Kunde_Hat_Adresse.POSTLEITZAHL = Adresse.POSTLEITZAHL
         AND Kunde_Hat_Adresse.HAUSNUMMER = Adresse.HAUSNUMMER
-    LEFT JOIN
+      LEFT JOIN
         Bestellung ON Kunde.KUNDENNUMMER = Bestellung.KUNDENNUMMER
-    LEFT JOIN
-        Bestellung_enthält_Produkt B ON Bestellung.KUNDENNUMMER = B.KUNDENNUMMER
-    LEFT JOIN
+      LEFT JOIN
+        Bestellung_enthaelt_Produkt B ON Bestellung.KUNDENNUMMER = B.KUNDENNUMMER
+      LEFT JOIN
         Produkt P ON B.ARTIKELNR = P.ARTIKELNR
-    LEFT JOIN PRODUKT_ENTHÄLT_PROBE PEP on P.ARTIKELNR = PEP.ARTIKELNR
-        where GEODATENGEBERID = :geoID AND PEP.PROBENSTATUS = 1
-        GROUP BY
+      WHERE
+        GEODATENGEBERID = ?
+      GROUP BY
         Kunde.KUNDENNUMMER, Adresse.ORT, Kunde.TELEFONNUMMER, Kunde.VORNAME, Kunde.NACHNAME, Kunde.E_MAIL
-    order by KUNDENNUMMER`,[geoID])
-    
-  
-    return result.rows
+      ORDER BY
+        KUNDENNUMMER;
+    `, [geoID]);
+
+    return rows;
   } catch (err) {
-    console.log('Ouch!', err)
+    console.error('Ouch!', err);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
 
-async function getKundendatenDieZuZiehenSind(userID) {
-  let conn
-  let resultsKundendaten = {
-    lufa: [],
-    claas: [],
-    gsagri: [],
-    lwkniedersachsen: [],
-    maehlmann: [],
-    sonstiges: [],
-  }
- 
+
+
+async function getMitarbeiterdaten() {
+  let connection;
+  let results = [];
+
   try {
-    conn = await oracledb.getConnection(config)
-    console.log('resultclaas')
+    connection = await mysql.createConnection(config);
 
+    const [rows] = await connection.execute('SELECT * FROM MITARBEITER');
 
+    results = rows;
 
-    const resultLufa = await  getKundenDatenMitGeoDatenDieZuZiehenSind(1)
-    const resultclaas = await  getKundenDatenMitGeoDatenDieZuZiehenSind(2)
-    const resultgsagri = await  getKundenDatenMitGeoDatenDieZuZiehenSind(3)
-    const resultlwkniedersachsen = await  getKundenDatenMitGeoDatenDieZuZiehenSind(4)
-    const resultmaehlmann = await  getKundenDatenMitGeoDatenDieZuZiehenSind(5)
-    const resultsonsttiges = await  getKundenDatenMitGeoDatenDieZuZiehenSind(6)
-
-
-
-
-    resultsKundendaten.lufa = resultLufa
-    resultsKundendaten.claas = resultclaas
-    resultsKundendaten.gsagri = resultgsagri
-    resultsKundendaten.lwkniedersachsen = resultlwkniedersachsen
-    resultsKundendaten.maehlmann = resultmaehlmann
-    resultsKundendaten.sonstiges = resultsonsttiges
-  
-    return resultsKundendaten
+    return results;
   } catch (err) {
-    console.log('Ouch!', err)
+    console.error('Ouch!', err);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
 
-async function getKundendaten(userID) {
-  let conn
-  let resultsKundendaten = {
-    lufa: [],
-    claas: [],
-    gsagri: [],
-    lwkniedersachsen: [],
-    maehlmann: [],
-    sonstiges: [],
-  }
- 
-  try {
-    conn = await oracledb.getConnection(config)
-
-
-    const resultLufa = await  getKundenDatenMitGeoDaten(1)
-    const resultclaas = await  getKundenDatenMitGeoDaten(2)
-    const resultgsagri = await  getKundenDatenMitGeoDaten(3)
-    const resultlwkniedersachsen = await  getKundenDatenMitGeoDaten(4)
-    const resultmaehlmann = await  getKundenDatenMitGeoDaten(5)
-    const resultsonsttiges = await  getKundenDatenMitGeoDaten(6)
-
-
-
-    resultsKundendaten.lufa = resultLufa
-    resultsKundendaten.claas = resultclaas
-    resultsKundendaten.gsagri = resultgsagri
-    resultsKundendaten.lwkniedersachsen = resultlwkniedersachsen
-    resultsKundendaten.maehlmann = resultmaehlmann
-    resultsKundendaten.sonstiges = resultsonsttiges
-  
-    return resultsKundendaten
-  } catch (err) {
-    console.log('Ouch!', err)
-  } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
-    }
-  }
-}
-
-async function getMitarbeiterdaten(userID) {
-  let conn
-  let results = []
-  
-  try {
-    conn = await oracledb.getConnection(config)
-
-    const result =  await conn.execute(`select * from MITARBEITER`)  
-    results = result.rows
-  
-    return results
-  } catch (err) {
-    console.log('Ouch!', err)
-  } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
-    }
-  }
-}
 
 
 async function createCart(userID){
@@ -748,32 +759,32 @@ async function createCart(userID){
   }
 }
 
-async function createBestellung(userID){
-  let conn
+
+async function createBestellung(userID) {
+  let connection;
 
   try {
-    conn = await oracledb.getConnection(config)
-    const hatBestellung = await conn.execute("select KUNDENNUMMER from BESTELLUNG where Kundennummer = :userID",[userID])
+    connection = await mysql.createConnection(config);
+
+    const [hatBestellung] = await connection.execute("SELECT KUNDENNUMMER FROM BESTELLUNG WHERE Kundennummer = ?", [userID]);
 
     try {
-      if (hatBestellung.rows.length === 0) {
-        await conn.execute('INSERT INTO BESTELLUNG(KUNDENNUMMER, ZEITSTEMPEL) VALUES (:userID,sysdate)', [userID]);
-        conn.commit
+      if (hatBestellung.length === 0) {
+        await connection.execute('INSERT INTO BESTELLUNG(KUNDENNUMMER, ZEITSTEMPEL) VALUES (?, NOW())', [userID]);
+        await connection.commit();
       }
     } catch (error) {
       console.error('Fehler beim Einfügen: Bestellung ' + error.message);
-    }    
-
-    conn.commit()
-
+    }
   } catch (err) {
-    console.log('Ouch!', err, productID,flaechenname,imageElement,fleachenartValue)
+    console.log('Ouch!', err);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
+
 
 
 async function putToBestellung(selectedOption, userID,productID, flaechenname, dateValue,NminValue,MangatValue,StickstoffValue,coordinates,imageElement,fleachenartValue,gettiefenValue) {
@@ -795,23 +806,23 @@ async function putToBestellung(selectedOption, userID,productID, flaechenname, d
       }
 
 
-      await conn.execute("insert into PRODUKT (ARTIKELNR,FLÄCHENNAME,preis,FOTO,FLEACHENART,Kundennummer) VALUES (:productID,:flaechenname,7,:imageElement,:fleachenartValue,:userID)",[productID,flaechenname,imageElement,fleachenartValue,userID])
+      await conn.execute("insert into PRODUKT (ARTIKELNR,FLAECHENNAME,preis,FOTO,FLEACHENART,Kundennummer) VALUES (:productID,:flaechenname,7,:imageElement,:fleachenartValue,:userID)",[productID,flaechenname,imageElement,fleachenartValue,userID])
       await conn.execute("insert into PRODUKT_ENTHÄLT_TIEFE(ARTIKELNR, TIEFENID) VALUES (:productID,:gettiefenValue)",[productID,gettiefenValue])
 
       if(MangatValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
       } 
       
       if(NminValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
       }
   
       if(StickstoffValue==2){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,1)",[productID])
       } else if(StickstoffValue==3){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,1)",[productID])
       } else if(StickstoffValue==4){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,4,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,4,1)",[productID])
       }
 
       conn.commit
@@ -833,7 +844,7 @@ async function putToBestellung(selectedOption, userID,productID, flaechenname, d
         break;
       }
     }
-    await conn.execute('INSERT INTO BESTELLUNG_ENTHÄLT_PRODUKT (KUNDENNUMMER,ARTIKELNR) VALUES(:userID,:productID)',[userID,productID])
+    await conn.execute('INSERT INTO BESTELLUNG_ENTHAELT_PRODUKT (KUNDENNUMMER,ARTIKELNR) VALUES(:userID,:productID)',[userID,productID])
     conn.commit()
   } catch (err) {
     console.log('Ouch!', err)
@@ -862,23 +873,23 @@ async function putToCart(selectedOption, userID,productID, flaechenname, dateVal
 
 
 
-      await conn.execute("insert into PRODUKT (ARTIKELNR,FLÄCHENNAME,preis,FOTO,FLEACHENART,Kundennummer) VALUES (:productID,:flaechenname,7,:imageElement,:fleachenartValue,:userID)",[productID,flaechenname,imageElement,fleachenartValue,userID])
+      await conn.execute("insert into PRODUKT (ARTIKELNR,FLAECHENNAME,preis,FOTO,FLEACHENART,Kundennummer) VALUES (:productID,:flaechenname,7,:imageElement,:fleachenartValue,:userID)",[productID,flaechenname,imageElement,fleachenartValue,userID])
       await conn.execute("insert into PRODUKT_ENTHÄLT_TIEFE(ARTIKELNR, TIEFENID) VALUES (:productID,:gettiefenValue)",[productID,gettiefenValue])
 
       if(MangatValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
       } 
       
       if(NminValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[productID])
       }
   
       if(StickstoffValue==2){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,1)",[productID])
       } else if(StickstoffValue==3){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,1)",[productID])
       } else if(StickstoffValue==4){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,4,1)",[productID])
+        await conn.execute("insert into PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,4,1)",[productID])
       }
 
       conn.commit
@@ -926,21 +937,24 @@ async function putToCart(selectedOption, userID,productID, flaechenname, dateVal
 
 
 
-async function anderPasswort(userID,passwordNewInput) {
-  let conn
+async function anderPasswort(userID, passwordNewInput) {
+  let connection;
+  console.log('userID ' + userID)
 
   try {
-    conn = await oracledb.getConnection(config)
-    await conn.execute('update kunde set PASSWORD = :passwordNewInput where KUNDENNUMMER= :userID',[passwordNewInput, userID])
-    conn.commit()
+    connection = await mysql.createConnection(config);
+    await connection.execute('UPDATE MITARBEITER SET PASSWORD = ? WHERE PERSONALNUMMER = ?', [passwordNewInput, userID]);
+    await connection.commit();
   } catch (err) {
-    console.log('Ouch!', err)
+    console.log('Ouch!', err);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
+
+
 
 async function getAllProducts () {
   let conn
@@ -1167,67 +1181,57 @@ async function registerUser(email, telefonnummer, password, vorname, nachname, g
 }
 
 
-async function registerUserWithFleachen(kundennummer, email, telefonnummer, password, vorname, nachname, geburtsdatum, ort, plz, strasse, hausnummer, selectedOption) { //req.body.email, hashedPassword,req.body.vorname, req.body.nachname,req.body.date
-  let conn
+
+async function registerUserWithFleachen(kundennummer, email, telefonnummer, password, vorname, nachname, geburtsdatum, ort, plz, strasse, hausnummer, selectedOption) {
+  const connection = await mysql.createConnection(config);
+
+  console.log('die selectect option ' + selectedOption)
 
   try {
-    conn = await oracledb.getConnection(config)
-    if(selectedOption > 1){
-      kundennummer = await conn.execute('select max(KUNDENNUMMER) from Kunde where GEODATENGEBERID  != 1')
-      kundennummer = kundennummer.rows[0][0]+1;
+    if (selectedOption > 1) {
+      const maxKundennummer = await connection.execute('SELECT MAX(KUNDENNUMMER) AS MAXKUNDENNUMMER FROM Kunde WHERE GEODATENGEBERID  != 1');
+
+      kundennummer = maxKundennummer[0][0].MAXKUNDENNUMMER + 1;
     }
 
+    const result = await connection.execute(
+      "INSERT INTO KUNDE (Kundennummer, E_MAIL, Telefonnummer, PASSWORD, VORNAME, NACHNAME, KundeSeit, GEODATENGEBERID) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)",
+      [kundennummer, email, telefonnummer, password, vorname, nachname, selectedOption]
+    );
 
+    ort = ort || 'null';
+    plz = plz || 0;
+    strasse = strasse || 'null';
+    hausnummer = hausnummer || 0;
 
-    const result = await conn.execute(
-      "INSERT INTO KUNDE (Kundennummer, E_MAIL,Telefonnummer,PASSWORD,VORNAME,NACHNAME,GEBURTSDATUM, KundeSeit,GEODATENGEBERID) VALUES (:kundennummer,:email,:telefonnummer,:password,:vorname,:nachname,TO_DATE(:geburtsdatum,'yyyy-mm-dd'),sysdate,:selectedOption)",
-      [kundennummer,email,telefonnummer,password,vorname,nachname,geburtsdatum,selectedOption]
-    )
-    
+    // Check if Adresse schon vorhanden
+    const result4 = await connection.execute('SELECT * FROM ADRESSE WHERE STRASSE = ? AND POSTLEITZAHL = ? AND HAUSNUMMER = ? AND ORT = ?', [strasse, plz, hausnummer, ort]);
 
-    ort = ort ? ort : 'null';
-    plz = plz ? plz : 0;
-    strasse = strasse ? strasse : 'null';
-    hausnummer = hausnummer ? hausnummer : 0;
-
-
-    //Check if Adresse schon vorhanden
-    result4 = await conn.execute('SELECT * FROM ADRESSE WHERE STRASSE = :strasse AND POSTLEITZAHL = :plz AND HAUSNUMMER = :hnr AND ORT = :ort',[strasse,plz,hausnummer,ort])
-    
-    if(result4.rows.length > 0){
-      conn.execute('UPDATE ADRESSE SET ISTRECHNUNGSADRESSE=1, ISTLIEFERADRESSE=1')
-    }else{
-      conn.execute("INSERT INTO ADRESSE (STRASSE,POSTLEITZAHL,HAUSNUMMER,ORT,ISTWOHNADRESSE, ISTRECHNUNGSADRESSE, ISTLIEFERADRESSE, ISTSTANDORTSADRESSE) VALUES (:strasse,:plz,:hausnummer,:ort,0,1,1,0)",
-      [strasse,plz,hausnummer,ort])
+    if (result4[0].length > 0) {
+      await connection.execute('UPDATE ADRESSE SET ISTRECHNUNGSADRESSE = 1, ISTLIEFERADRESSE = 1 WHERE STRASSE = ? AND POSTLEITZAHL = ? AND HAUSNUMMER = ? AND ORT = ?', [strasse, plz, hausnummer, ort]);
+    } else {
+      await connection.execute("INSERT INTO ADRESSE (STRASSE, POSTLEITZAHL, HAUSNUMMER, ORT, ISTWOHNADRESSE, ISTRECHNUNGSADRESSE, ISTLIEFERADRESSE, ISTSTANDORTSADRESSE) VALUES (?, ?, ?, ?, 0, 1, 1, 0)", [strasse, plz, hausnummer, ort]);
     }
 
-    const result3 = await conn.execute(
-      "INSERT INTO KUNDE_HAT_ADRESSE (KUNDENNUMMER,STRASSE,POSTLEITZAHL,HAUSNUMMER,ORT) VALUES (:neuesteKundennummer,:strasse,:plz,:hausnummer,:ort)",
-      [kundennummer,strasse,plz,hausnummer,ort]
-    )
+    await connection.execute(
+      "INSERT INTO KUNDE_HAT_ADRESSE (KUNDENNUMMER, STRASSE, POSTLEITZAHL, HAUSNUMMER, ORT) VALUES (?, ?, ?, ?, ?)",
+      [kundennummer, strasse, plz, hausnummer, ort]
+    );
 
-    conn.commit;
+    await connection.commit();
 
-    
-    return { kundennummer }; // otherData ist ein Platzhalter für andere Informationen, die du zurückgeben möchtest
-
-    
-
-
-
-
-  } catch (err) {
-    console.log('User could not be registered', err)
-    var statusCode = 123
-    return { kundennummer, statusCode}; // otherData ist ein Platzhalter für andere Informationen, die du zurückgeben möchtest
-    throw err
+    return { kundennummer };
+  } catch (error) {
+    console.log('User could not be registered', error);
+    const statusCode = 123;
+    return { kundennummer, statusCode };
   } finally {
-    conn.commit()
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
+
 
 async function getUserByEmail(email) {
   let conn
@@ -1237,22 +1241,41 @@ async function getUserByEmail(email) {
     id: null
   }
   try {
-    conn = await oracledb.getConnection(config)    
+    /*conn = await oracledb.getConnection(config)    
     const result = await conn.execute(
       'SELECT E_MAIL, PASSWORD, Personalnummer FROM MITARBEITER WHERE E_MAIL = :email',[email]
-    )
+    )*/
+
+    const connection = await mysql.createConnection(config);
+
+    const [rows, fields] = await connection.execute(
+      'SELECT E_MAIL, PASSWORD, Personalnummer FROM MITARBEITER WHERE E_MAIL = ?',
+      [email]
+    );
+  
+
+    const user = {};
+    if (rows.length > 0) {
+      user.email = rows[0].E_MAIL;
+      user.password = rows[0].PASSWORD;
+      user.id = rows[0].Personalnummer;
+    }
+
+    return user;
+  
+
 
 
 
     /*const result = await conn.execute(
       'SELECT E_MAIL, PASSWORD, KUNDENNUMMER FROM KUNDE WHERE E_MAIL = :email',[email]
     )*/
-      if(result.rows.length > 0){
+    /*  if(result.rows.length > 0){
         user.email = result.rows[0][0]
         user.password = result.rows[0][1]
         user.id = result.rows[0][2]
     }
-      return user
+      return user*/
       
   } catch (err) {
     console.log('Error Reading User', err)
@@ -1265,32 +1288,31 @@ async function getUserByEmail(email) {
 }
 
 async function getUserById(id) {
-  let conn
-  const user = {
-    email: null ,
-    password: null,
-    id: null
-  }
-  try {
-    conn = await oracledb.getConnection(config)
+  const connection = await mysql.createConnection(config);
 
-    const result = await conn.execute(
-      'SELECT E_MAIL, PASSWORD, KUNDENNUMMER FROM KUNDE WHERE Kundennummer = :id',[id]
-    )
-      if(result.rows.length > 0){
-        user.email = result.rows[0][0]
-        user.password = result.rows[0][1]
-        user.id = result.rows[0][2]
+  try {
+    // MySQL-Abfrage ausführen
+    const [rows, fields] = await connection.execute(
+      'SELECT E_MAIL, PASSWORD, KUNDENNUMMER FROM KUNDE WHERE Kundennummer = ?',
+      [id]
+    );
+
+    // Hier kannst du deine Logik für die Verarbeitung der MySQL-Ergebnisse implementieren
+    const user = {};
+    if (rows.length > 0) {
+      user.email = rows[0].E_MAIL;
+      user.password = rows[0].PASSWORD;
+      user.id = rows[0].KUNDENNUMMER;
     }
-      return user
+
+    return user;
       
   } catch (err) {
     console.log('Error Reading User', err)
     throw err
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
-    }
+    // Verbindung schließen, wenn du fertig bist
+    await connection.end();
   }
 }
 
@@ -1376,7 +1398,7 @@ async function getClob(userID){
       FROM
       Produkt P
   JOIN
-      Bestellung_enthält_Produkt B ON P.ARTIKELNR = B.ARTIKELNR
+  BESTELLUNG_ENTHAELT_PRODUKT B ON P.ARTIKELNR = B.ARTIKELNR
   JOIN
       Bestellung O ON B.KUNDENNUMMER = O.KUNDENNUMMER
   WHERE
@@ -1396,31 +1418,38 @@ async function getClob(userID){
 }
 
 
-async function getClobWaren(userID){
-  let conn
+async function getClobWaren(userID) {
+
+  if (userID === null || userID === undefined) {
+    console.error('userID ist null oder undefined.');
+    return null; // Oder einen anderen Wert oder Fehlercode zurückgeben
+  }
+
+
+  let connection;
 
   try {
-    conn = await oracledb.getConnection(config)
-    oracledb.fetchAsString = [ oracledb.CLOB ]
-    const result = await conn.execute(
+    connection = await mysql.createConnection(config);
+
+    const [rows] = await connection.execute(
       `
       SELECT
-      P.ARTIKELNR,P.FOTO
+        P.ARTIKELNR, P.FOTO
       FROM
-      Produkt P
-  JOIN
-      Bestellung_enthält_Produkt B ON P.ARTIKELNR = B.ARTIKELNR
-  JOIN
-      Bestellung O ON B.Kundennummer = O.Kundennummer
-  WHERE
-      O.Kundennummer = :userID`, [userID])
-    return result
+        Produkt P
+        JOIN BESTELLUNG_ENTHAELT_PRODUKT B ON P.ARTIKELNR = B.ARTIKELNR
+        JOIN Bestellung O ON B.KUNDENNUMMER = O.KUNDENNUMMER
+      WHERE
+        O.KUNDENNUMMER = ?`,
+      [userID]
+    );
 
-  } catch (err) {
-    console.log('Ouch!', err)
+    return rows;
+  } catch (error) {
+    console.error('Ouch!', error);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
@@ -1468,245 +1497,263 @@ async function getCartSuggestions(cartArtikelNumbers){
   }
 }
 
-
+//TODO WARENKORB LÖSCHEN!
 async function getfleachenFromUser(userID) {
-  let conn
-  let fleachen
+  let connection;
+  let fleachen;
 
   try {
-    conn = await oracledb.getConnection(config)
-    
-    
+    connection = await mysql.createConnection(config);
 
-    //Alle Produkte des Warenkorbs des Users auslesen
-    fleachen = await conn.execute(`
+    fleachen = await connection.execute(`
+      SELECT DISTINCT fc.ARTIKELNR, fc.FKOORDINATENIDLAT, fc.FKOORDINATENIDLNG, fc.POSITIONSPUNKT
+      FROM FLEACHENKOORDINATE fc
+      JOIN PRODUKT p ON p.ARTIKELNR = fc.ARTIKELNR
+      JOIN WARENKORB_ENTHÄLT_PRODUKT wp ON wp.ARTIKELNR = p.ARTIKELNR
+      JOIN WARENKORB w ON w.KUNDENNUMMER = wp.KUNDENNUMMER
+      JOIN KUNDE k ON k.KUNDENNUMMER = w.KUNDENNUMMER
+      WHERE k.KUNDENNUMMER = ?
+      ORDER BY fc.ARTIKELNR, fc.POSITIONSPUNKT
+    `, [userID]);
  
-SELECT DISTINCT fc.ARTIKELNR, fc.FKOORDINATENIDLAT, fc.FKOORDINATENIDLNG,  fc.POSITIONSPUNKT
-FROM FLEACHENKOORDINATE fc
-JOIN PRODUKT p ON p.ARTIKELNR = fc.ARTIKELNR
-JOIN WARENKORB_ENTHÄLT_PRODUKT wp ON wp.ARTIKELNR = p.ARTIKELNR
-JOIN WARENKORB w ON w.KUNDENNUMMER = wp.KUNDENNUMMER
-JOIN KUNDE k ON k.KUNDENNUMMER = w.KUNDENNUMMER
-WHERE K.KUNDENNUMMER = :userID
-order by fc.ARTIKELNR, fc.POSITIONSPUNKT
-`,[userID]);
-
-    return fleachen
+    return fleachen[0];
   } catch (err) {
-    console.log('Ouch!', err)
+    console.error('Ouch!', err); 
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
 
 
 
+
 async function beiEinemKundenDieFleachenHinzufügen(uebergebeneInformation) {
-  let conn
+  let connection;
+
   try {
-    conn = await oracledb.getConnection(config)
+    connection = await mysql.createConnection(config);
+
+    
 
     for (const fleachenInformationen of uebergebeneInformation) {
-  
-      if(fleachenInformationen.productid === 'undefinedundefinedundefined'){
-        fleachenInformationen.productid = await conn.execute('select max(ARTIKELNR) from PRODUKT where Kundennummer  = :userID',[fleachenInformationen.USERID])
-        fleachenInformationen.productid = fleachenInformationen.productid.rows[0][0]+1;
+      if (fleachenInformationen.productid === 'undefinedundefinedundefined') {
+        const result = await connection.execute('SELECT MAX(ARTIKELNR) FROM PRODUKT WHERE Kundennummer = ?', [fleachenInformationen.USERID]);
+        fleachenInformationen.productid = result[0][0] + 1;
       }
 
-      await conn.execute("insert into PRODUKT (ARTIKELNR,FLÄCHENNAME,preis,FOTO,FLEACHENART,Kundennummer) VALUES (:productID,:flaechenname,7,:imageElement,:fleachenartValue,:userID)",[fleachenInformationen.productid,fleachenInformationen.flaechenname,fleachenInformationen.imageElement,fleachenInformationen.fleachenart,fleachenInformationen.USERID])
-      await conn.execute("insert into PRODUKT_ENTHÄLT_TIEFE(ARTIKELNR, TIEFENID) VALUES (:productID,:gettiefenValue)",[fleachenInformationen.productid,fleachenInformationen.tiefenValue])
+      await connection.execute("INSERT INTO PRODUKT (ARTIKELNR, FLAECHENNAME, preis, FOTO, FLEACHENART, Kundennummer) VALUES (?, ?, 7, ?, ?, ?)",
+        [fleachenInformationen.productid, fleachenInformationen.flaechenname, fleachenInformationen.imageElement, fleachenInformationen.fleachenart, fleachenInformationen.USERID]);
 
-      if(fleachenInformationen.MangatValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[fleachenInformationen.productid])
-      } 
-      
-      if(fleachenInformationen.EminValue=='j'){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[fleachenInformationen.productid])
+      await connection.execute("INSERT INTO PRODUKT_ENTHÄLT_TIEFE (ARTIKELNR, TIEFENID) VALUES (?, ?)",
+        [fleachenInformationen.productid, fleachenInformationen.tiefenValue]);
+
+      if (fleachenInformationen.MangatValue === 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 1)", [fleachenInformationen.productid]);
       }
-  
-      if(fleachenInformationen.StickstoffValue==2){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,1)",[fleachenInformationen.productid])
-      } else if(fleachenInformationen.StickstoffValue==3){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,1)",[fleachenInformationen.productid])
-      } else if(fleachenInformationen.StickstoffValue==4){
-        await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,4,1)",[fleachenInformationen.productid])
+
+      if (fleachenInformationen.EminValue === 'j') {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 1)", [fleachenInformationen.productid]);
       }
-               
-      for (let j = 0; j <= fleachenInformationen.coordinates.length; j++) {
-        try{
-          var position = j+1;  
-          await conn.execute(
-            "insert into FLEACHENKOORDINATE(FKOORDINATENIDLAT, FKOORDINATENIDLNG, ARTIKELNR,POSITIONSPUNKT) VALUES (:coordinateLAT, :coordinateLNG, :productID, :position)",
-            {coordinateLAT: fleachenInformationen.coordinates[j][0], coordinateLNG: fleachenInformationen.coordinates[j][1], productID: fleachenInformationen.productid, position}
+
+      if (fleachenInformationen.StickstoffValue == 2) {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 2, 1)", [fleachenInformationen.productid]);
+      } else if (fleachenInformationen.StickstoffValue == 3) {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 3, 1)", [fleachenInformationen.productid]);
+      } else if (fleachenInformationen.StickstoffValue == 4) {
+        await connection.execute("INSERT INTO PRODUKT_ENTHAELT_PROBE (ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 4, 1)", [fleachenInformationen.productid]);
+      }
+
+      for (let j = 0; j < fleachenInformationen.coordinates.length; j++) {
+        try {
+          const position = j + 1;
+          await connection.execute(
+            "INSERT INTO FLEACHENKOORDINATE (FKOORDINATENIDLAT, FKOORDINATENIDLNG, ARTIKELNR, POSITIONSPUNKT) VALUES (?, ?, ?, ?)",
+            [fleachenInformationen.coordinates[j][0], fleachenInformationen.coordinates[j][1], fleachenInformationen.productid, position]
           );
         } catch (error) {
           break;
         }
       }
 
-      await conn.execute('INSERT INTO BESTELLUNG_ENTHÄLT_PRODUKT (KUNDENNUMMER,ARTIKELNR) VALUES(:userID,:productID)',[fleachenInformationen.USERID,fleachenInformationen.productid])
-    }
-    
-    conn.commit()
 
-    //TODO GHET ES VOLLKOMMEN DURCH BZW WARUM NICHT
-  } catch (err) {
-    console.log('Ouch!', err)
+
+      await connection.execute('INSERT INTO BESTELLUNG_ENTHAELT_PRODUKT (KUNDENNUMMER, ARTIKELNR) VALUES (?, ?)', [
+        fleachenInformationen.USERID,
+        fleachenInformationen.productid,
+      ]);
+    }
+
+    await connection.commit();
+
+  } catch (error) {
+    console.log('Ouch!', error);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
 
-async function beiMehrerenKundenDieFleachenHinzufügen(res, uebergebeneInformation) {
-  let conn
 
+async function beiMehrerenKundenDieFleachenHinzufügen(res, uebergebeneInformation) {
+  let connection;
 
   try {
-    conn = await oracledb.getConnection(config)
+    connection = await mysql.createConnection(config);
+
     for (const einzelneInformationen of uebergebeneInformation) {
-      console.log(einzelneInformationen[0].USERID)
 
-      /*
-              USERID: Kundennummer,
-        productid: FleachenID,
-        flaechenname: schlagBez,
-        dateValue: dateValue,
-        EminValue: 'j',
-        MangatValue: 'n',
-        StickstoffValue: 'n',
-        coordinates: coordinatesArray,
-        imageElement: image,
-        fleachenart: NUTZUNG,
-        tiefenValue: 1,
-        selectedOption : selectedOption   
-        */
-
-
-      if(einzelneInformationen[0].selectedOption > 1){
-        einzelneInformationen[0].USERID = await conn.execute('select max(KUNDENNUMMER) from Kunde where GEODATENGEBERID  != 1')
-        einzelneInformationen[0].USERID = einzelneInformationen[0].USERID.rows[0][0]+1;
+      if (einzelneInformationen[0].selectedOption > 1) {
+        const result = await connection.execute('SELECT MAX(KUNDENNUMMER) FROM Kunde WHERE GEODATENGEBERID  != 1');
+        einzelneInformationen[0].USERID = result[0]['MAX(KUNDENNUMMER)'] + 1;
       }
 
+      const result1 = await connection.execute(
+        "INSERT INTO KUNDE (Kundennummer, KundeSeit, GEODATENGEBERID) VALUES (?, NOW(), ?)",
+        [einzelneInformationen[0].USERID, einzelneInformationen[0].selectedOption]
+      );
 
-  
-      const result = await conn.execute(
-        "INSERT INTO KUNDE (Kundennummer,KundeSeit,GEODATENGEBERID) VALUES (:kundennummer,sysdate,:selectedOption)",
-        [einzelneInformationen[0].USERID,einzelneInformationen[0].selectedOption ]
-      )
-      
-  
-      var ort =  'null';
-      var plz = 0;
-      var strasse =  'null';
-      var hausnummer = 0;
-  
-  
-      //Check if Adresse schon vorhanden
-      result4 = await conn.execute('SELECT * FROM ADRESSE WHERE STRASSE = :strasse AND POSTLEITZAHL = :plz AND HAUSNUMMER = :hnr AND ORT = :ort',[strasse,plz,hausnummer,ort])
-      
-      if(result4.rows.length > 0){
-        conn.execute('UPDATE ADRESSE SET ISTRECHNUNGSADRESSE=1, ISTLIEFERADRESSE=1')
-      }else{
-        conn.execute("INSERT INTO ADRESSE (STRASSE,POSTLEITZAHL,HAUSNUMMER,ORT,ISTWOHNADRESSE, ISTRECHNUNGSADRESSE, ISTLIEFERADRESSE, ISTSTANDORTSADRESSE) VALUES (:strasse,:plz,:hausnummer,:ort,0,1,1,0)",
-        [strasse,plz,hausnummer,ort])
+      const ort = 'null';
+      const plz = 0;
+      const strasse = 'null';
+      const hausnummer = 0;
+
+      const result4 = await connection.execute(
+        'SELECT * FROM ADRESSE WHERE STRASSE = ? AND POSTLEITZAHL = ? AND HAUSNUMMER = ? AND ORT = ?',
+        [strasse, plz, hausnummer, ort]
+      );
+
+      if (result4.length > 0) {
+        await connection.execute('UPDATE ADRESSE SET ISTRECHNUNGSADRESSE=1, ISTLIEFERADRESSE=1');
+      } else {
+        await connection.execute(
+          "INSERT INTO ADRESSE (STRASSE, POSTLEITZAHL, HAUSNUMMER, ORT, ISTWOHNADRESSE, ISTRECHNUNGSADRESSE, ISTLIEFERADRESSE, ISTSTANDORTSADRESSE) VALUES (?, ?, ?, ?, 0, 1, 1, 0)",
+          [strasse, plz, hausnummer, ort]
+        );
       }
-  
-      const result3 = await conn.execute(
-        "INSERT INTO KUNDE_HAT_ADRESSE (KUNDENNUMMER,STRASSE,POSTLEITZAHL,HAUSNUMMER,ORT) VALUES (:neuesteKundennummer,:strasse,:plz,:hausnummer,:ort)",
-        [einzelneInformationen[0].USERID,strasse,plz,hausnummer,ort]
-      )
 
-      const hatBestellung = await conn.execute("select KUNDENNUMMER from BESTELLUNG where Kundennummer = :userID",[einzelneInformationen[0].USERID])
+      const result3 = await connection.execute(
+        "INSERT INTO KUNDE_HAT_ADRESSE (KUNDENNUMMER, STRASSE, POSTLEITZAHL, HAUSNUMMER, ORT) VALUES (?, ?, ?, ?, ?)",
+        [einzelneInformationen[0].USERID, strasse, plz, hausnummer, ort]
+      );
 
-      if (hatBestellung.rows.length === 0) {
-        await conn.execute('INSERT INTO BESTELLUNG(KUNDENNUMMER, ZEITSTEMPEL) VALUES (:userID,sysdate)', [einzelneInformationen[0].USERID]);
+      const result = await connection.execute("SELECT KUNDENNUMMER FROM BESTELLUNG WHERE Kundennummer = ?", [
+        einzelneInformationen[0].USERID,
+      ]);
+      
+
+      if (result[0].length === 0) {
+        await connection.execute('INSERT INTO BESTELLUNG(KUNDENNUMMER, ZEITSTEMPEL) VALUES (?, NOW())', [
+          einzelneInformationen[0].USERID,
+        ]);
       }
 
       for (const fleachenInformationen of einzelneInformationen) {
+        fleachenInformationen.USERID = einzelneInformationen[0].USERID;
 
+        if (fleachenInformationen.productid === 'undefinedundefinedundefined') {
+          const result = await connection.execute(
+            'SELECT MAX(ARTIKELNR) FROM PRODUKT WHERE Kundennummer = ?',
+            [fleachenInformationen.USERID]
+          );
+          fleachenInformationen.productid = result[0]['MAX(ARTIKELNR)'];
 
-        fleachenInformationen.USERID = einzelneInformationen[0].USERID
-
-        console.log(fleachenInformationen.USERID + ' fleachenInformationen.USERID')
-
-    
-        if(fleachenInformationen.productid === 'undefinedundefinedundefined'){
-          let result = await conn.execute('select max(ARTIKELNR) from PRODUKT where Kundennummer = :userID', [fleachenInformationen.USERID]);
-          fleachenInformationen.productid = result.rows[0][0];
-          
-          if(fleachenInformationen.productid === null){
+          if (fleachenInformationen.productid === null) {
             fleachenInformationen.productid = 0;
           }
-          
-          console.log(fleachenInformationen.productid + ' fleachenInformationen.productid')
+
           fleachenInformationen.productid = '' + fleachenInformationen.USERID + '' + (fleachenInformationen.productid + 1) + '';
-
-          
         }
 
-        console.log(fleachenInformationen.productid + ' fleachenInformationen.productid')
 
+        await connection.execute(
+          "INSERT INTO PRODUKT (ARTIKELNR, FLAECHENNAME, preis, FOTO, FLEACHENART, Kundennummer) VALUES (?, ?, 7, ?, ?, ?)",
+          [
+            fleachenInformationen.productid,
+            fleachenInformationen.flaechenname,
+            fleachenInformationen.imageElement,
+            fleachenInformationen.fleachenart,
+            fleachenInformationen.USERID,
+          ]
+        );
+        await connection.execute(
+          "INSERT INTO PRODUKT_ENTHÄLT_TIEFE(ARTIKELNR, TIEFENID) VALUES (?, ?)",
+          [fleachenInformationen.productid, fleachenInformationen.tiefenValue]
+        );
 
-
-        await conn.execute("insert into PRODUKT (ARTIKELNR,FLÄCHENNAME,preis,FOTO,FLEACHENART,Kundennummer) VALUES (:productID,:flaechenname,7,:imageElement,:fleachenartValue,:userID)",[fleachenInformationen.productid,fleachenInformationen.flaechenname,fleachenInformationen.imageElement,fleachenInformationen.fleachenart,fleachenInformationen.USERID])
-        await conn.execute("insert into PRODUKT_ENTHÄLT_TIEFE(ARTIKELNR, TIEFENID) VALUES (:productID,:gettiefenValue)",[fleachenInformationen.productid,fleachenInformationen.tiefenValue])
-
-        if(fleachenInformationen.MangatValue=='j'){
-          await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[fleachenInformationen.productid])
-        } 
-        
-        if(fleachenInformationen.EminValue=='j'){
-          await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,1,1)",[fleachenInformationen.productid])
+        if (fleachenInformationen.MangatValue == 'j') {
+          await connection.execute(
+            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 1)",
+            [fleachenInformationen.productid]
+          );
         }
-    
-        if(fleachenInformationen.StickstoffValue==2){
-          await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,2,1)",[fleachenInformationen.productid])
-        } else if(fleachenInformationen.StickstoffValue==3){
-          await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,3,1)",[fleachenInformationen.productid])
-        } else if(fleachenInformationen.StickstoffValue==4){
-          await conn.execute("insert into PRODUKT_ENTHÄLT_PROBE(ArtikelNr, PROBENARTID,PROBENSTATUS)  values (:productID,4,1)",[fleachenInformationen.productid])
+
+        if (fleachenInformationen.EminValue == 'j') {
+          await connection.execute(
+            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 1, 1)",
+            [fleachenInformationen.productid]
+          );
         }
-                
+
+        if (fleachenInformationen.StickstoffValue == 2) {
+          await connection.execute(
+            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 2, 1)",
+            [fleachenInformationen.productid]
+          );
+        } else if (fleachenInformationen.StickstoffValue == 3) {
+          await connection.execute(
+            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 3, 1)",
+            [fleachenInformationen.productid]
+          );
+        } else if (fleachenInformationen.StickstoffValue == 4) {
+          await connection.execute(
+            "INSERT INTO PRODUKT_ENTHAELT_PROBE(ArtikelNr, PROBENARTID, PROBENSTATUS) VALUES (?, 4, 1)",
+            [fleachenInformationen.productid]
+          );
+        }
+
         for (let j = 0; j <= fleachenInformationen.coordinates.length; j++) {
-          try{
-            var position = j+1;  
-            await conn.execute(
-              "insert into FLEACHENKOORDINATE(FKOORDINATENIDLAT, FKOORDINATENIDLNG, ARTIKELNR,POSITIONSPUNKT) VALUES (:coordinateLAT, :coordinateLNG, :productID, :position)",
-              {coordinateLAT: fleachenInformationen.coordinates[j][0], coordinateLNG: fleachenInformationen.coordinates[j][1], productID: fleachenInformationen.productid, position}
+          try {
+            const position = j + 1;
+            await connection.execute(
+              "INSERT INTO FLEACHENKOORDINATE(FKOORDINATENIDLAT, FKOORDINATENIDLNG, ARTIKELNR, POSITIONSPUNKT) VALUES (?, ?, ?, ?)",
+              [fleachenInformationen.coordinates[j][0], fleachenInformationen.coordinates[j][1], fleachenInformationen.productid, position]
             );
           } catch (error) {
             break;
           }
         }
 
-        await conn.execute('INSERT INTO BESTELLUNG_ENTHÄLT_PRODUKT (KUNDENNUMMER,ARTIKELNR) VALUES(:userID,:productID)',[fleachenInformationen.USERID,fleachenInformationen.productid])
+        await connection.execute('INSERT INTO BESTELLUNG_ENTHAELT_PRODUKT (KUNDENNUMMER, ARTIKELNR) VALUES (?, ?)', [
+          fleachenInformationen.USERID,
+          fleachenInformationen.productid,
+        ]);
       }
     }
-    
-    conn.commit()
 
-    //TODO GHET ES VOLLKOMMEN DURCH BZW WARUM NICHT
+    await connection.commit();
+
+    return 100; // Erfolg HTTP-Statuscode
   } catch (err) {
-    console.log('Ouch!', err)
-    return 123;
-    //return res.status(123).send('Es wurden keine ZIP-Dateien hochgeladen.');
+    console.log('Ouch!', err);
+    return 123; // Interner Serverfehler HTTP-Statuscode
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
-    }
+    if (connection) {
+      await connection.end();
+    } 
   }
 }
 
-async function getkundenDatenVomAusgewaehltenUser(userID){
-  try {
-    conn = await oracledb.getConnection(config)
+async function getkundenDatenVomAusgewaehltenUser(userID) {
+  let connection;
 
-    const result =  await conn.execute(`
-    SELECT
+  try {
+    connection = await mysql.createConnection(config);
+
+    const [result] = await connection.execute(`
+      SELECT
         Kunde.KUNDENNUMMER,
         Kunde.VORNAME,
         Kunde.NACHNAME,
@@ -1718,63 +1765,76 @@ async function getkundenDatenVomAusgewaehltenUser(userID){
         Adresse.POSTLEITZAHL,
         Adresse.STRASSE,
         Adresse.HAUSNUMMER
-        FROM
-            Kunde
-        JOIN
-            Kunde_Hat_Adresse ON Kunde.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
-        JOIN
-            Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
-            AND Kunde_Hat_Adresse.ORT = Adresse.ORT
-            AND Kunde_Hat_Adresse.POSTLEITZAHL = Adresse.POSTLEITZAHL
-            AND Kunde_Hat_Adresse.HAUSNUMMER = Adresse.HAUSNUMMER
-        where KUNDE.KUNDENNUMMER = :userID`,[userID])
-    
-  
-    return result.rows
+      FROM
+        Kunde
+      JOIN
+        Kunde_Hat_Adresse ON Kunde.KUNDENNUMMER = Kunde_Hat_Adresse.KUNDENNUMMER
+      JOIN
+        Adresse ON Kunde_Hat_Adresse.STRASSE = Adresse.STRASSE
+        AND Kunde_Hat_Adresse.ORT = Adresse.ORT
+        AND Kunde_Hat_Adresse.POSTLEITZAHL = Adresse.POSTLEITZAHL
+        AND Kunde_Hat_Adresse.HAUSNUMMER = Adresse.HAUSNUMMER
+      WHERE
+        KUNDE.KUNDENNUMMER = ?
+    `, [userID]);
+
+    return result[0];
   } catch (err) {
-    console.log('Ouch!', err)
+    console.error('Ouch!', err);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
 
+async function getUpdateDatenVomKunden(kundennummer, vorname, nachname, email, telefonnummer, ort, plz, strasse, hausnummer, password, geburtsdatum) {
+  let connection;
 
-
-async function getUpdateDatenVomKunden(kundennummer, vorname,nachname,email,telefonnummer,ort,plz,strasse,hausnummer,password,geburtsdatum){
   try {
-    conn = await oracledb.getConnection(config)
+    connection = await mysql.createConnection(config);
 
+    const [result] = await connection.execute('SELECT * FROM KUNDE WHERE KUNDENNUMMER = ?', [kundennummer]);
 
-    console.log(kundennummer,vorname)
+    const [result2] = await connection.execute(
+      'UPDATE KUNDE SET VORNAME = ?, NACHNAME = ?, TELEFONNUMMER = ?, E_MAIL = ?, PASSWORD = ? WHERE KUNDENNUMMER = ?',
+      [vorname, nachname, telefonnummer, email, password, kundennummer]
+    );
 
-    const result = await conn.execute(`select * from KUNDE where  KUNDENNUMMER = :kundennummer`, [kundennummer])
-
-    console.log(result.rows + 'ist das ergebnis')
-
-
-    const result2 = await conn.execute("update KUNDE set VORNAME = :vorname, NACHNAME = :nachname, TELEFONNUMMER = :telefonnummer, E_MAIL = :email, PASSWORD = :password, GEBURTSDATUM = TO_DATE(:geburtsdatum,'yyyy-mm-dd') where KUNDENNUMMER = :kundennummer", [vorname,nachname,telefonnummer,email,password,geburtsdatum,kundennummer])
-  
     try {
-      const result3 = await conn.execute("insert into ADRESSE (STRASSE, POSTLEITZAHL, HAUSNUMMER, ORT) VALUES (:strasse,:plz,:hausnummer,:ort)",[strasse,plz,hausnummer,ort])
+      const [result3] = await connection.execute('INSERT INTO ADRESSE (STRASSE, POSTLEITZAHL, HAUSNUMMER, ORT) VALUES (?, ?, ?, ?)', [strasse, plz, hausnummer, ort]);
+    } catch (err) {}
 
-    } catch(err){}
+    const [result4] = await connection.execute('DELETE FROM KUNDE_HAT_ADRESSE WHERE KUNDENNUMMER = ?', [kundennummer]);
+    const [result5] = await connection.execute('INSERT INTO KUNDE_HAT_ADRESSE(KUNDENNUMMER, STRASSE, POSTLEITZAHL, HAUSNUMMER, ORT) VALUES (?, ?, ?, ?, ?)', [kundennummer, strasse, plz, hausnummer, ort]);
 
-    //
-    
-    const result4 = await conn.execute("delete from KUNDE_HAT_ADRESSE where KUNDENNUMMER = :kundennummer",[kundennummer])
-    const result5 = await conn.execute("insert into KUNDE_HAT_ADRESSE(KUNDENNUMMER, STRASSE, POSTLEITZAHL, HAUSNUMMER, ORT) VALUES (:kundennummer,:strasse,:plz,:hausnummer,:ort)",[kundennummer,strasse,plz,hausnummer,ort])
-
-    conn.commit()
+    await connection.commit();
   } catch (err) {
-    console.log('Ouch!', err)
+    console.log('Ouch!', err);
   } finally {
-    if (conn) { // conn assignment worked, need to close
-      await conn.close()
+    if (connection) {
+      await connection.end();
     }
   }
 }
+
+
+async function getKundenzumloeschen(kundennummer) {
+  let connection;
+
+  try {
+    connection = await mysql.createConnection(config);
+    await connection.execute('delete from kunde where KUNDENNUMMER= ?', [kundennummer]);
+    await connection.commit();
+  } catch (err) {
+    console.log('Ouch!', err);
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+}
+
 
 module.exports = {
   getResultKategorien,
@@ -1817,5 +1877,6 @@ module.exports = {
   beiMehrerenKundenDieFleachenHinzufügen,
   getKundendatenDieZuZiehenSind,
   getkundenDatenVomAusgewaehltenUser,
-  getUpdateDatenVomKunden
+  getUpdateDatenVomKunden,
+  getKundenzumloeschen
 }

@@ -30,22 +30,17 @@ router.get('/fleachen', async (req,res)=>{
 
 
 
-/* GET users listing. */
 router.get('/', async function(req, res, next) {
     if(req.isAuthenticated()){
         const userID = req.user.id
-        const cartFromUser = await getCartFromUser(userID)
-        const fleachenFromUser = await getfleachenFromAllUser(userID)
-        const Clob = await getClobHier(userID)
-
-        if(cartFromUser.products.length === -1){
-            req.flash('info', 'Keine Produkte im Warenkorb')
-            res.redirect('/products')
-        } else{
-            res.render('cart', { title: 'Express', dieUserID: userID, UserCart: cartFromUser, ClobFoto: Clob,  Fleachen: fleachenFromUser.rows, login: true })
+        var fleachenFromUser = await getfleachenFromAllUser()
+        if(fleachenFromUser.length > 0){
+            res.render('cart', { title: 'Express', dieUserID: userID, Fleachen: fleachenFromUser, login: true })
+        } else {
+            res.render('cart', { title: 'Express', dieUserID: userID, Fleachen: -1, login: true })
         }
     }
-    res.render('', { title: 'Express',login: false});
+    res.render('', { title: 'Express', login: false});
 });
 
 

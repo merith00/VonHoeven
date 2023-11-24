@@ -12,10 +12,8 @@ const MitarbeiterdatenGET = require('../database/oracle').getMitarbeiterdaten
 /* GET users listing. */
 router.get('/', async function(req, res, next) {
     if(req.isAuthenticated()){
-      const userID = req.user.id
-      var Mitarbeiterdaten = await MitarbeiterdatenGET(userID)
-      const MitarbeiterdatenUebergabe = Mitarbeiterdaten
-      res.render('myAccount',{title: 'MyAccount', MitarbeiterDaten: MitarbeiterdatenUebergabe, login: true})
+      var MitarbeiterdatenUebergabe = await MitarbeiterdatenGET()
+      res.render('myAccount',{title: 'MyAccount',  MitarbeiterDaten: MitarbeiterdatenUebergabe, login: true})
     }
     res.render('index', { title: 'Bodenproben', login: false})
 });
